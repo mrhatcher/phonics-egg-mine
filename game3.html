@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Number Jungle</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Learn &amp; Play">
+<meta name="theme-color" content="#061006">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+
+body { background: radial-gradient(ellipse at 50% 0%, #1a4a1a 0%, #061006 100%); font-family: 'Courier New', monospace; min-height: 100vh; overflow: hidden; position: relative; }
+
+/* Fireflies */
+.firefly { position: fixed; border-radius: 50%; background: #ffe066; animation: ffly linear infinite; z-index: 0; }
+@keyframes ffly { 0%,100%{opacity:0} 40%,60%{opacity:1} }
+
+/* Vine border */
+body::before { content:''; position:fixed; top:0;left:0;right:0;bottom:0; border:8px solid transparent; border-image:none; pointer-events:none; z-index:0; }
+
+/* Screens */
+.screen { display:none;width:100vw;height:100vh;position:absolute;top:0;left:0;flex-direction:column;align-items:center;justify-content:center;z-index:1;padding-top:58px;padding-bottom:20px; }
+.screen.active { display:flex; }
+
+/* Score bar */
+#scorebar { position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,0.88);border-bottom:3px solid #39d353;padding:7px 16px;display:none;align-items:center;gap:14px;z-index:50; }
+.sbl { display:inline-block;width:22px;height:22px;border:2px solid rgba(255,255,255,0.4);border-bottom:3px solid rgba(0,0,0,0.5);vertical-align:middle; }
+.sb-r { background:#ff4f4f; }
+.sb-t { background:#ff9f0a; }
+.sb-a { background:#bf5af2; }
+.sb-n { color:#fff;font-weight:bold;font-size:15px;vertical-align:middle; }
+#prog-bar { width:120px;height:14px;background:#111;border:2px solid #39d353; }
+#prog-fill { height:100%;background:#39d353;transition:width 0.4s; }
+
+/* Glow text */
+.glow { color:#90ff60;text-shadow:0 0 8px #90ff60,0 0 18px #90ff6055;font-weight:bold;letter-spacing:3px;font-family:'Courier New',monospace; }
+
+/* Dino bounce on intro */
+.dino-big { font-size:80px;animation:dinobounce 1.8s ease-in-out infinite;display:inline-block; }
+@keyframes dinobounce { 0%,100%{transform:translateY(0) rotate(-3deg)} 50%{transform:translateY(-14px) rotate(3deg)} }
+
+/* Jungle button */
+.j-btn { background:#0d2b0d;border:2px solid #39d353;box-shadow:0 0 12px #39d35355;color:#90ff60;font-family:'Courier New',monospace;font-size:20px;font-weight:bold;padding:14px 32px;cursor:pointer;letter-spacing:2px;transition:box-shadow 0.2s,transform 0.1s; }
+.j-btn:active { transform:scale(0.95); }
+.j-btn.dim { border-color:#aef;color:#aef;box-shadow:none;font-size:14px;padding:10px 22px; }
+
+/* Badge */
+.badge { background:rgba(0,0,0,0.7);border:2px solid #39d353;color:#90ff60;font-weight:bold;font-size:13px;letter-spacing:3px;padding:4px 14px;margin-bottom:8px; }
+
+/* Egg */
+.egg-row { display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:10px 0; }
+.egg {
+    width:72px;height:88px;
+    background:radial-gradient(ellipse at 38% 35%, #1a4a1a, #0a240a);
+    border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;
+    border:3px solid #39d353;
+    box-shadow:0 0 10px #39d35340;
+    display:flex;align-items:center;justify-content:center;
+    font-size:28px;font-weight:bold;color:transparent;
+    user-select:none;transition:transform 0.15s;cursor:default;
+}
+.egg.cracked { background:radial-gradient(ellipse at 38% 35%, #39d353, #1a7a30);color:#061006;box-shadow:0 0 18px #39d353;animation:eggPop 0.35s ease-out; }
+.egg.pop-in  { animation:eggPop 0.35s ease-out; }
+@keyframes eggPop { 0%{transform:scale(1) rotate(0)} 30%{transform:scale(1.3) rotate(-10deg)} 60%{transform:scale(0.9) rotate(7deg)} 100%{transform:scale(1) rotate(0)} }
+
+/* Number cards (for sequence / answer choices) */
+.choices { display:flex;gap:12px;flex-wrap:wrap;justify-content:center;max-width:460px;margin:10px 0; }
+.choice-btn { background:#0d1f0d;border:2px solid #39d353;box-shadow:0 0 6px #39d35325;color:#90ff60;font-family:'Courier New',monospace;font-size:30px;font-weight:bold;padding:14px 20px;cursor:pointer;min-width:80px;text-align:center;letter-spacing:2px;user-select:none; }
+.choice-btn:active:not(.correct):not(.wrong) { transform:scale(0.95); }
+.choice-btn.correct { background:#002800;border-color:#39d353;box-shadow:0 0 14px #39d353;color:#39d353; }
+.choice-btn.wrong   { background:#280000;border-color:#ff4444;box-shadow:0 0 14px #ff4444;color:#ff4444; }
+
+/* Sequence boxes */
+.seq-row { display:flex;gap:10px;justify-content:center;align-items:center;margin:12px 0; }
+.seq-box { width:66px;height:66px;border:3px solid #39d353;background:#0a1f0a;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:bold;color:#90ff60;font-family:'Courier New',monospace; }
+.seq-box.blank { background:radial-gradient(ellipse at 38% 35%, #1a4a1a, #0a240a);border-color:#ffd700;box-shadow:0 0 12px #ffd70060;color:#ffd700;animation:pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+.seq-arrow { color:#39d353;font-size:22px; }
+
+/* Plus/equals display */
+.math-row { display:flex;gap:14px;align-items:center;justify-content:center;margin:10px 0; }
+.math-sym { color:#ffd700;font-size:34px;font-weight:bold;text-shadow:0 0 8px #ffd700; }
+.math-group { display:flex;flex-direction:column;align-items:center;gap:6px; }
+.math-label { color:#adf;font-size:13px;letter-spacing:1px; }
+
+/* Feedback */
+.feedback-box { min-height:54px;display:flex;align-items:center;justify-content:center;margin:4px 0; }
+.pop { animation:popIn 0.45s ease-out both;display:inline-block; }
+@keyframes popIn { 0%{transform:scale(0) rotate(-15deg);opacity:0} 70%{transform:scale(1.2) rotate(3deg);opacity:1} 100%{transform:scale(1) rotate(0);opacity:1} }
+
+.instruct { font-size:14px;text-align:center;max-width:360px;margin:5px 0;color:#adf; }
+
+/* Reward stars */
+.stars-row { display:flex;gap:8px;justify-content:center;margin:8px 0; }
+.star-j { font-size:46px;display:inline-block;animation:popIn 0.4s ease-out both; }
+.big-block { display:inline-block;width:44px;height:44px;border:2px solid rgba(255,255,255,0.4);border-bottom:4px solid rgba(0,0,0,0.4);vertical-align:middle; }
+
+@media (max-width:480px) {
+    .egg { width:58px;height:72px;font-size:22px; }
+    .choice-btn { font-size:24px;padding:11px 14px;min-width:68px; }
+    .seq-box { width:54px;height:54px;font-size:26px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Fireflies -->
+<script>
+for(let i=0;i<18;i++){
+    const f=document.createElement('div');
+    f.className='firefly';
+    const sz=Math.random()*3+1.5;
+    f.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*90}%;left:${Math.random()*100}%;animation-duration:${(Math.random()*2.5+1.5).toFixed(1)}s;animation-delay:${(Math.random()*3).toFixed(1)}s;filter:blur(${sz>3?1:0}px)`;
+    document.body.appendChild(f);
+}
+</script>
+
+<!-- Score bar -->
+<div id="scorebar">
+    <span class="sbl sb-r"></span><span class="sb-n" id="sc-r">0</span>
+    <span class="sbl sb-t" style="margin-left:6px"></span><span class="sb-n" id="sc-t">0</span>
+    <span class="sbl sb-a" style="margin-left:6px"></span><span class="sb-n" id="sc-a">0</span>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+        <span id="round-lbl" style="color:#888;font-size:12px">1/9</span>
+        <div id="prog-bar"><div id="prog-fill" style="width:0%"></div></div>
+    </div>
+</div>
+
+<!-- INTRO -->
+<div class="screen active" id="s-intro">
+    <div class="dino-big">🦕</div>
+    <div class="glow" style="font-size:26px;margin:14px 0 6px;text-align:center">NUMBER<br>JUNGLE</div>
+    <div style="color:#adf;font-size:14px;letter-spacing:1px;text-align:center;margin-bottom:26px">
+        Count the eggs!<br>Add them up!<br>Find the missing number!
+    </div>
+    <button class="j-btn" onclick="startSession()" style="font-size:24px;padding:18px 50px">▶ PLAY</button>
+    <button class="j-btn dim" onclick="window.location.href='index.html'" style="margin-top:14px">← Phonics Egg Mine</button>
+    <button class="j-btn dim" onclick="window.location.href='game2.html'" style="margin-top:10px">🛸 Alien Word Decoder</button>
+</div>
+
+<!-- GAME A: HATCH & COUNT -->
+<div class="screen" id="s-ga">
+    <div class="badge">🥚 HATCH &amp; COUNT</div>
+    <div class="glow instruct" style="font-size:13px">Count the eggs as they hatch!</div>
+    <div class="egg-row" id="ga-eggs"></div>
+    <div class="glow" id="ga-counter" style="font-size:28px;min-height:44px;margin:4px 0"></div>
+    <div class="choices" id="ga-choices"></div>
+    <div class="feedback-box" id="ga-fb"></div>
+</div>
+
+<!-- GAME B: JUNGLE ADD -->
+<div class="screen" id="s-gb">
+    <div class="badge">➕ JUNGLE ADD</div>
+    <div class="glow instruct" id="gb-inst" style="font-size:13px;max-width:340px;text-align:center"></div>
+    <div class="math-row" id="gb-math"></div>
+    <div class="choices" id="gb-choices"></div>
+    <div class="feedback-box" id="gb-fb"></div>
+</div>
+
+<!-- GAME C: MISSING NUMBER -->
+<div class="screen" id="s-gc">
+    <div class="badge">❓ MISSING NUMBER</div>
+    <div class="glow instruct" style="font-size:13px">What number is missing?</div>
+    <div class="seq-row" id="gc-seq"></div>
+    <div class="choices" id="gc-choices"></div>
+    <div class="feedback-box" id="gc-fb"></div>
+</div>
+
+<!-- REWARD -->
+<div class="screen" id="s-reward">
+    <div class="glow" style="font-size:22px;margin-bottom:10px">JUNGLE CHAMPION!</div>
+    <div class="stars-row" id="reward-stars"></div>
+    <div style="color:#adf;font-size:14px;margin:8px 0">You collected:</div>
+    <div style="display:flex;gap:18px;align-items:center;justify-content:center;margin-bottom:12px">
+        <span class="big-block" style="background:#ff4f4f"></span><span style="color:#ff4f4f;font-size:22px;font-weight:bold" id="r-r">0</span>
+        <span class="big-block" style="background:#ff9f0a"></span><span style="color:#ff9f0a;font-size:22px;font-weight:bold" id="r-t">0</span>
+        <span class="big-block" style="background:#bf5af2"></span><span style="color:#bf5af2;font-size:22px;font-weight:bold" id="r-a">0</span>
+    </div>
+    <canvas id="build-canvas" width="300" height="180" style="border:2px solid #39d353;box-shadow:0 0 14px #39d35340;display:block;margin:0 auto 14px"></canvas>
+    <button class="j-btn" onclick="startSession()">▶ PLAY AGAIN</button>
+    <button class="j-btn dim" onclick="window.location.href='index.html'" style="margin-top:10px">← Phonics Egg Mine</button>
+    <button class="j-btn dim" onclick="window.location.href='game2.html'" style="margin-top:8px">🛸 Alien Word Decoder</button>
+</div>
+
+<!-- Dino helper overlay -->
+<div id="dino-overlay" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.82);align-items:center;justify-content:center">
+    <div style="background:#0d2b0d;border:5px solid #39d353;padding:28px 32px;text-align:center;max-width:300px;box-shadow:0 0 24px #39d35340">
+        <div style="font-size:80px;line-height:1">🦕</div>
+        <div style="color:#90ff60;font-size:18px;font-weight:bold;letter-spacing:1px;margin-top:10px;text-shadow:0 0 8px #90ff60" id="dino-msg"></div>
+    </div>
+</div>
+
+<script>
+// ─── COUNT PROBLEMS ───────────────────────────────────────────────────────────
+const COUNTS = [1,2,3,4,5,6,1,2,4,5,3,6];
+
+// ─── ADD PROBLEMS ─────────────────────────────────────────────────────────────
+const ADDS = [
+    { a:1, b:1, ans:2 },
+    { a:1, b:2, ans:3 },
+    { a:2, b:2, ans:4 },
+    { a:1, b:3, ans:4 },
+    { a:2, b:3, ans:5 },
+    { a:3, b:3, ans:6 },
+    { a:1, b:4, ans:5 },
+    { a:2, b:4, ans:6 },
+    { a:1, b:5, ans:6 },
+];
+
+// ─── SEQUENCE PROBLEMS ────────────────────────────────────────────────────────
+const SEQS = [
+    { seq:[null,2,3], ans:1 },
+    { seq:[1,null,3], ans:2 },
+    { seq:[2,3,null], ans:4 },
+    { seq:[null,4,5], ans:3 },
+    { seq:[3,null,5], ans:4 },
+    { seq:[4,5,null], ans:6 },
+    { seq:[null,3,4], ans:2 },
+    { seq:[2,null,4], ans:3 },
+    { seq:[1,2,null], ans:3 },
+];
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let S = {};
+
+function resetState() {
+    S = {
+        rubies:0, topaz:0, amethyst:0,
+        round:0, totalRounds:9, correct:0, wrongCount:0,
+        gameOrder:[0,1,2, 0,1,2, 0,1,2],
+        counts: shuffle([...COUNTS]).slice(0,3),
+        adds:   shuffle([...ADDS]).slice(0,3),
+        seqs:   shuffle([...SEQS]).slice(0,3),
+        ci:0, ai:0, si:0,
+    };
+}
+
+// ─── SPEECH ───────────────────────────────────────────────────────────────────
+function say(text, rate=0.88, pitch=1.1, cb=null) {
+    if (!window.speechSynthesis) { if(cb) cb(); return; }
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate=rate; u.pitch=pitch; u.volume=1;
+    if(cb) u.onend=cb;
+    speechSynthesis.speak(u);
+}
+
+function showDino(msg, ms, cb) {
+    const ov=document.getElementById('dino-overlay');
+    document.getElementById('dino-msg').textContent=msg;
+    ov.style.display='flex';
+    say('Let me help! '+msg, 0.82, 1.1, ()=>{
+        setTimeout(()=>{ ov.style.display='none'; if(cb) cb(); }, ms||1200);
+    });
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function shuffle(a) {
+    const r=[...a];
+    for(let i=r.length-1;i>0;i--){const j=0|Math.random()*(i+1);[r[i],r[j]]=[r[j],r[i]];}
+    return r;
+}
+
+function nearbyChoices(ans, min, max, count) {
+    const pool=[];
+    for(let n=min;n<=max;n++) if(n!==ans) pool.push(n);
+    return shuffle(pool).slice(0,count);
+}
+
+function show(id) {
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.getElementById('scorebar').style.display = id==='s-intro' ? 'none' : 'flex';
+}
+
+function hud() {
+    document.getElementById('sc-r').textContent=S.rubies;
+    document.getElementById('sc-t').textContent=S.topaz;
+    document.getElementById('sc-a').textContent=S.amethyst;
+    document.getElementById('round-lbl').textContent=S.round+'/'+S.totalRounds;
+    document.getElementById('prog-fill').style.width=(S.round/S.totalRounds*100)+'%';
+}
+
+// ─── SESSION ──────────────────────────────────────────────────────────────────
+function startSession() { resetState(); hud(); nextRound(); }
+
+function nextRound() {
+    S.round++; hud();
+    const g=S.gameOrder[S.round-1];
+    if(g===0) gameA();
+    else if(g===1) gameB();
+    else gameC();
+}
+
+function advance(ok) {
+    if(ok) S.correct++;
+    if(S.round>=S.totalRounds) setTimeout(reward,1300);
+    else setTimeout(nextRound,1300);
+}
+
+// ─── GAME A: HATCH & COUNT ────────────────────────────────────────────────────
+function gameA() {
+    S.wrongCount=0;
+    const n=S.counts[S.ci % S.counts.length]; S.ci++;
+    show('s-ga');
+    document.getElementById('ga-fb').innerHTML='';
+    document.getElementById('ga-counter').textContent='';
+    document.getElementById('ga-choices').innerHTML='';
+
+    // Build N eggs, hidden to start
+    const row=document.getElementById('ga-eggs');
+    row.innerHTML='';
+    for(let i=0;i<n;i++){
+        const e=document.createElement('div');
+        e.className='egg';
+        e.id='ea-'+i;
+        e.style.opacity='0';
+        row.appendChild(e);
+    }
+
+    say('Count the eggs as they hatch!', 0.85, 1.1, ()=>{
+        hatchEggs(n, 0, ()=>{
+            // All hatched — show number choices
+            const wrongs=nearbyChoices(n,1,7,3);
+            const opts=shuffle([n,...wrongs]);
+            say('How many eggs did you see?', 0.85, 1.1);
+            const cd=document.getElementById('ga-choices');
+            cd.innerHTML='';
+            opts.forEach(o=>{
+                const b=document.createElement('button');
+                b.className='choice-btn';
+                b.textContent=o;
+                b.onclick=()=>pickCount(o, n);
+                cd.appendChild(b);
+            });
+        });
+    });
+}
+
+function hatchEggs(total, idx, done) {
+    if(idx>=total) { setTimeout(done,400); return; }
+    const e=document.getElementById('ea-'+idx);
+    if(e){
+        e.style.opacity='1';
+        e.classList.add('cracked','pop-in');
+        e.textContent=idx+1;
+        document.getElementById('ga-counter').textContent=(idx+1)+'';
+        say(''+(idx+1), 0.9, 1.15);
+    }
+    setTimeout(()=>hatchEggs(total, idx+1, done), 900);
+}
+
+function pickCount(choice, correct) {
+    const ok=choice===correct;
+    if(ok){
+        document.querySelectorAll('#ga-choices .choice-btn').forEach(b=>b.onclick=null);
+        document.querySelectorAll('#ga-choices .choice-btn').forEach(b=>{
+            if(+b.textContent===correct) b.classList.add('correct');
+        });
+        say(correct+'! That\'s right! Ruby collected!', 0.85, 1.15);
+        document.getElementById('ga-fb').innerHTML='<span class="pop" style="font-size:46px;color:#ff4f4f">🔴 +1</span>';
+        S.rubies++; hud(); advance(true);
+    } else {
+        S.wrongCount++;
+        document.querySelectorAll('#ga-choices .choice-btn').forEach(b=>{
+            if(+b.textContent===choice) b.classList.add('wrong');
+        });
+        if(S.wrongCount>=2){
+            document.querySelectorAll('#ga-choices .choice-btn').forEach(b=>b.onclick=null);
+            document.querySelectorAll('#ga-choices .choice-btn').forEach(b=>{
+                if(+b.textContent===correct) b.classList.add('correct');
+            });
+            showDino('There are '+correct+' eggs!', 2000, ()=>{
+                document.getElementById('ga-fb').innerHTML='<span class="pop" style="font-size:36px;color:#adf">🦕 Now you know!</span>';
+                advance(false);
+            });
+        } else {
+            say('Try again! Count the eggs!', 0.85, 1.0);
+            document.getElementById('ga-fb').innerHTML='<span class="pop" style="font-size:32px;color:#adf">🦕 Try again!</span>';
+            setTimeout(()=>{
+                document.querySelectorAll('#ga-choices .choice-btn').forEach(b=>{
+                    b.classList.remove('wrong');
+                    b.onclick=()=>pickCount(+b.textContent, correct);
+                });
+                document.getElementById('ga-fb').innerHTML='';
+            },1200);
+        }
+    }
+}
+
+// ─── GAME B: JUNGLE ADD ───────────────────────────────────────────────────────
+function gameB() {
+    S.wrongCount=0;
+    const prob=S.adds[S.ai % S.adds.length]; S.ai++;
+    show('s-gb');
+    document.getElementById('gb-fb').innerHTML='';
+
+    document.getElementById('gb-inst').textContent=prob.a+' plus '+prob.b+' equals what?';
+
+    // Build visual egg groups
+    const mr=document.getElementById('gb-math');
+    mr.innerHTML='';
+
+    function eggGroup(n, label) {
+        const g=document.createElement('div');
+        g.className='math-group';
+        const er=document.createElement('div');
+        er.className='egg-row';
+        er.style.flexWrap='wrap';
+        er.style.maxWidth='160px';
+        for(let i=0;i<n;i++){
+            const e=document.createElement('div');
+            e.className='egg cracked';
+            e.textContent='🥚';
+            e.style.fontSize='20px';
+            e.style.width='44px';
+            e.style.height='54px';
+            er.appendChild(e);
+        }
+        const lbl=document.createElement('div');
+        lbl.className='math-label';
+        lbl.textContent=label;
+        g.appendChild(er); g.appendChild(lbl);
+        return g;
+    }
+
+    mr.appendChild(eggGroup(prob.a, prob.a+''));
+    const plus=document.createElement('div');
+    plus.className='math-sym'; plus.textContent='+';
+    mr.appendChild(plus);
+    mr.appendChild(eggGroup(prob.b, prob.b+''));
+    const eq=document.createElement('div');
+    eq.className='math-sym'; eq.textContent='=';
+    mr.appendChild(eq);
+    const q=document.createElement('div');
+    q.className='math-sym'; q.textContent='?';
+    mr.appendChild(q);
+
+    const wrongs=nearbyChoices(prob.ans, 1, 8, 3);
+    const opts=shuffle([prob.ans,...wrongs]);
+    const cd=document.getElementById('gb-choices');
+    cd.innerHTML='';
+    opts.forEach(o=>{
+        const b=document.createElement('button');
+        b.className='choice-btn';
+        b.textContent=o;
+        b.onclick=()=>pickAdd(o, prob);
+        cd.appendChild(b);
+    });
+
+    setTimeout(()=>say(prob.a+' plus '+prob.b+' equals how much? Count all the eggs!', 0.82, 1.1), 400);
+}
+
+function pickAdd(choice, prob) {
+    const ok=choice===prob.ans;
+    if(ok){
+        document.querySelectorAll('#gb-choices .choice-btn').forEach(b=>b.onclick=null);
+        document.querySelectorAll('#gb-choices .choice-btn').forEach(b=>{
+            if(+b.textContent===prob.ans) b.classList.add('correct');
+        });
+        say(prob.a+' plus '+prob.b+' equals '+prob.ans+'! Topaz collected!', 0.85, 1.1);
+        document.getElementById('gb-fb').innerHTML='<span class="pop" style="font-size:46px;color:#ff9f0a">🟠 +1</span>';
+        S.topaz++; hud(); advance(true);
+    } else {
+        S.wrongCount++;
+        document.querySelectorAll('#gb-choices .choice-btn').forEach(b=>{
+            if(+b.textContent===choice) b.classList.add('wrong');
+        });
+        if(S.wrongCount>=2){
+            document.querySelectorAll('#gb-choices .choice-btn').forEach(b=>b.onclick=null);
+            document.querySelectorAll('#gb-choices .choice-btn').forEach(b=>{
+                if(+b.textContent===prob.ans) b.classList.add('correct');
+            });
+            showDino(prob.a+' plus '+prob.b+' equals '+prob.ans+'!', 2500, ()=>{
+                document.getElementById('gb-fb').innerHTML='<span class="pop" style="font-size:36px;color:#adf">🦕 Now you know!</span>';
+                advance(false);
+            });
+        } else {
+            say('Try again! Count all the eggs together!', 0.85, 1.0);
+            document.getElementById('gb-fb').innerHTML='<span class="pop" style="font-size:32px;color:#adf">🦕 Try again!</span>';
+            setTimeout(()=>{
+                document.querySelectorAll('#gb-choices .choice-btn').forEach(b=>{
+                    b.classList.remove('wrong');
+                    b.onclick=()=>pickAdd(+b.textContent, prob);
+                });
+                document.getElementById('gb-fb').innerHTML='';
+            },1200);
+        }
+    }
+}
+
+// ─── GAME C: MISSING NUMBER ───────────────────────────────────────────────────
+function gameC() {
+    S.wrongCount=0;
+    const sq=S.seqs[S.si % S.seqs.length]; S.si++;
+    show('s-gc');
+    document.getElementById('gc-fb').innerHTML='';
+
+    // Build sequence display
+    const sr=document.getElementById('gc-seq');
+    sr.innerHTML='';
+    sq.seq.forEach((v,i)=>{
+        if(i>0){
+            const arr=document.createElement('div');
+            arr.className='seq-arrow'; arr.textContent='→';
+            sr.appendChild(arr);
+        }
+        const box=document.createElement('div');
+        box.className='seq-box'+(v===null?' blank':'');
+        box.textContent=v===null?'?':v;
+        sr.appendChild(box);
+    });
+
+    const wrongs=nearbyChoices(sq.ans, 1, 7, 3);
+    const opts=shuffle([sq.ans,...wrongs]);
+    const cd=document.getElementById('gc-choices');
+    cd.innerHTML='';
+    opts.forEach(o=>{
+        const b=document.createElement('button');
+        b.className='choice-btn';
+        b.textContent=o;
+        b.onclick=()=>pickSeq(o, sq);
+        cd.appendChild(b);
+    });
+
+    // Build spoken version of sequence
+    const spoken=sq.seq.map(v=>v===null?'blank':v).join('... ');
+    setTimeout(()=>say('What number is missing? '+spoken+'. What goes in the blank?', 0.80, 1.1), 400);
+}
+
+function pickSeq(choice, sq) {
+    const ok=choice===sq.ans;
+    if(ok){
+        document.querySelectorAll('#gc-choices .choice-btn').forEach(b=>b.onclick=null);
+        document.querySelectorAll('#gc-choices .choice-btn').forEach(b=>{
+            if(+b.textContent===sq.ans) b.classList.add('correct');
+        });
+        // Fill in blank box
+        document.querySelectorAll('.seq-box.blank').forEach(b=>{
+            b.textContent=sq.ans; b.classList.remove('blank');
+        });
+        say(sq.ans+'! That\'s right! Amethyst collected!', 0.85, 1.1);
+        document.getElementById('gc-fb').innerHTML='<span class="pop" style="font-size:46px;color:#bf5af2">💜 +1</span>';
+        S.amethyst++; hud(); advance(true);
+    } else {
+        S.wrongCount++;
+        document.querySelectorAll('#gc-choices .choice-btn').forEach(b=>{
+            if(+b.textContent===choice) b.classList.add('wrong');
+        });
+        if(S.wrongCount>=2){
+            document.querySelectorAll('#gc-choices .choice-btn').forEach(b=>b.onclick=null);
+            document.querySelectorAll('#gc-choices .choice-btn').forEach(b=>{
+                if(+b.textContent===sq.ans) b.classList.add('correct');
+            });
+            document.querySelectorAll('.seq-box.blank').forEach(b=>{
+                b.textContent=sq.ans; b.classList.remove('blank');
+            });
+            showDino('The missing number is '+sq.ans+'!', 2000, ()=>{
+                document.getElementById('gc-fb').innerHTML='<span class="pop" style="font-size:36px;color:#adf">🦕 Now you know!</span>';
+                advance(false);
+            });
+        } else {
+            say('Try again! Look at the numbers!', 0.85, 1.0);
+            document.getElementById('gc-fb').innerHTML='<span class="pop" style="font-size:32px;color:#adf">🦕 Try again!</span>';
+            setTimeout(()=>{
+                document.querySelectorAll('#gc-choices .choice-btn').forEach(b=>{
+                    b.classList.remove('wrong');
+                    b.onclick=()=>pickSeq(+b.textContent, sq);
+                });
+                document.getElementById('gc-fb').innerHTML='';
+            },1200);
+        }
+    }
+}
+
+// ─── REWARD ───────────────────────────────────────────────────────────────────
+function reward() {
+    show('s-reward');
+    document.getElementById('r-r').textContent=S.rubies;
+    document.getElementById('r-t').textContent=S.topaz;
+    document.getElementById('r-a').textContent=S.amethyst;
+    const pct=S.correct/S.totalRounds;
+    const stars=pct>=0.9?3:pct>=0.6?2:1;
+    const sr=document.getElementById('reward-stars');
+    sr.innerHTML='';
+    [0,1,2].forEach(i=>{
+        const el=document.createElement('span');
+        el.className='star-j';
+        el.textContent=i<stars?'⭐':'☆';
+        el.style.animationDelay=(i*0.18)+'s';
+        sr.appendChild(el);
+    });
+    drawJungle(S.rubies, S.topaz, S.amethyst);
+    const msg=stars===3?'Amazing! Three stars! You are a math champion!'
+             :stars===2?'Great job! Two stars! You are so smart!'
+             :'Good work! Keep practicing those numbers!';
+    setTimeout(()=>say(msg, 0.85, 1.1), 300);
+}
+
+function drawJungle(r, t, a) {
+    const cv=document.getElementById('build-canvas');
+    const cx=cv.getContext('2d');
+    const W=cv.width, H=cv.height;
+    cx.clearRect(0,0,W,H);
+
+    // Background
+    cx.fillStyle='#061006'; cx.fillRect(0,0,W,H);
+
+    // Moon
+    cx.fillStyle='#fffde7'; cx.shadowColor='#fffde7'; cx.shadowBlur=18;
+    cx.beginPath(); cx.arc(W-50,36,22,0,Math.PI*2); cx.fill();
+    cx.shadowBlur=0;
+
+    // Stars
+    for(let i=0;i<20;i++){
+        cx.fillStyle='rgba(255,255,220,'+(Math.random()*0.6+0.2)+')';
+        cx.beginPath(); cx.arc(Math.random()*W,Math.random()*(H*0.5),1,0,Math.PI*2); cx.fill();
+    }
+
+    // Ground
+    cx.fillStyle='#1a4a1a'; cx.fillRect(0,H-36,W,18);
+    cx.fillStyle='#0d2b0d'; cx.fillRect(0,H-18,W,18);
+
+    const bs=18;
+    function blk(col,x,y,glow){
+        cx.shadowColor=glow||col; cx.shadowBlur=glow?10:0;
+        cx.fillStyle=col; cx.fillRect(x,y,bs,bs);
+        cx.fillStyle='rgba(255,255,255,0.2)'; cx.fillRect(x,y,bs,3); cx.fillRect(x,y,3,bs);
+        cx.fillStyle='rgba(0,0,0,0.3)'; cx.fillRect(x,y+bs-3,bs,3); cx.fillRect(x+bs-3,y,3,bs);
+        cx.shadowBlur=0;
+    }
+
+    const mx=W/2-bs, gy=H-36;
+
+    // Tree trunk (always)
+    blk('#5d3a1a',mx,gy-bs); blk('#5d3a1a',mx+bs,gy-bs);
+    blk('#5d3a1a',mx,gy-2*bs); blk('#5d3a1a',mx+bs,gy-2*bs);
+
+    // Ruby leaves (red-orange)
+    if(r>=1){ blk('#ff4f4f',mx-bs,gy-2*bs,'#ff4f4f'); blk('#ff4f4f',mx+2*bs,gy-2*bs,'#ff4f4f'); blk('#39d353',mx,gy-3*bs,'#39d353'); blk('#39d353',mx+bs,gy-3*bs,'#39d353'); }
+    if(r>=2){ blk('#39d353',mx-bs,gy-3*bs,'#39d353'); blk('#39d353',mx+2*bs,gy-3*bs,'#39d353'); blk('#ff4f4f',mx,gy-4*bs,'#ff4f4f'); }
+    if(r>=3){ blk('#ff4f4f',mx-bs,gy-4*bs,'#ff4f4f'); blk('#ff4f4f',mx+2*bs,gy-4*bs,'#ff4f4f'); blk('#39d353',mx+bs/2,gy-4.5*bs,'#39d353'); }
+
+    // Topaz fruit (orange)
+    if(t>=1){ blk('#ff9f0a',mx-2*bs,gy-bs,'#ff9f0a'); blk('#ff9f0a',mx+3*bs,gy-bs,'#ff9f0a'); }
+    if(t>=2){ blk('#ff9f0a',mx-2*bs,gy-2*bs,'#ff9f0a'); blk('#ff9f0a',mx+3*bs,gy-2*bs,'#ff9f0a'); }
+    if(t>=3){ blk('#ff9f0a',mx-3*bs,gy-bs,'#ff9f0a'); blk('#ff9f0a',mx+4*bs,gy-bs,'#ff9f0a'); }
+
+    // Amethyst flowers (purple)
+    if(a>=1){ blk('#bf5af2',mx-3*bs,gy-2*bs,'#bf5af2'); blk('#bf5af2',mx+4*bs,gy-2*bs,'#bf5af2'); }
+    if(a>=2){ blk('#bf5af2',mx-2*bs,gy-3*bs,'#bf5af2'); blk('#bf5af2',mx+3*bs,gy-3*bs,'#bf5af2'); }
+    if(a>=3){ blk('#bf5af2',mx-3*bs,gy-3*bs,'#bf5af2'); blk('#bf5af2',mx+4*bs,gy-3*bs,'#bf5af2'); }
+}
+
+// ─── SPEECH WARM-UP ───────────────────────────────────────────────────────────
+let _w=false;
+document.addEventListener('click',()=>{
+    if(_w) return; _w=true;
+    const u=new SpeechSynthesisUtterance(' ');
+    u.volume=0; speechSynthesis.speak(u);
+},false);
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>

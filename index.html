@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Phonics Egg Mine</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Learn &amp; Play">
+<meta name="theme-color" content="#5BA3E8">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+
+body {
+    background: #5BA3E8;
+    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Minecraft ground */
+body::after {
+    content: '';
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 70px;
+    background: linear-gradient(to bottom, #5d8731 0px, #5d8731 22px, #8b5e3c 22px);
+    z-index: 0;
+}
+
+/* Clouds */
+.cloud {
+    position: fixed;
+    background: rgba(255,255,255,0.85);
+    border-radius: 4px;
+    height: 20px;
+    animation: cloudDrift linear infinite;
+    z-index: 0;
+}
+@keyframes cloudDrift {
+    from { transform: translateX(-120px); }
+    to   { transform: translateX(110vw); }
+}
+
+/* Screens */
+.screen {
+    display: none;
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    top: 0; left: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    padding-top: 55px;
+    padding-bottom: 70px;
+}
+.screen.active { display: flex; }
+
+/* Score bar */
+#scorebar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    background: rgba(0,0,0,0.82);
+    padding: 7px 16px;
+    display: none;
+    align-items: center;
+    gap: 14px;
+    z-index: 50;
+    border-bottom: 3px solid #5d8731;
+}
+.sblock {
+    display: inline-block;
+    width: 22px; height: 22px;
+    border: 2px solid #000;
+    border-bottom: 3px solid rgba(0,0,0,0.5);
+    border-right: 3px solid rgba(0,0,0,0.5);
+    vertical-align: middle;
+}
+.sb-d { background: #5cdbd3; }
+.sb-g { background: #ffd700; }
+.sb-e { background: #00a550; }
+.sb-score { color: #fff; font-weight: bold; font-size: 15px; vertical-align: middle; }
+#progress-wrap { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+#round-lbl { color: #ccc; font-size: 12px; white-space: nowrap; }
+#prog-bar { width: 120px; height: 14px; background: #333; border: 2px solid #000; }
+#prog-fill { height: 100%; background: #5d8731; transition: width 0.4s; }
+
+/* Pixel text */
+.px { font-weight: bold; letter-spacing: 2px; color: #fff; text-shadow: 2px 2px 0 #000, -1px -1px 0 #000; }
+
+/* MC button */
+.mc-btn {
+    background: #5d8731;
+    border: 3px solid #000;
+    border-bottom: 5px solid #2d4f0f;
+    border-right: 5px solid #2d4f0f;
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 14px 30px;
+    cursor: pointer;
+    text-shadow: 2px 2px 0 #000;
+    letter-spacing: 2px;
+    user-select: none;
+}
+.mc-btn:active { transform: scale(0.96); border-bottom-width: 3px; border-right-width: 3px; }
+
+/* Game label badge */
+.game-badge {
+    background: rgba(0,0,0,0.8);
+    border: 3px solid #5d8731;
+    color: #5cdbd3;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    letter-spacing: 3px;
+    font-size: 13px;
+    padding: 4px 14px;
+    margin-bottom: 8px;
+}
+
+/* Eggs */
+.egg-row { display: flex; gap: 18px; justify-content: center; margin: 12px 0; }
+
+.egg {
+    width: 88px; height: 108px;
+    background: radial-gradient(ellipse at 38% 35%, #fff9ec, #e5cfA0);
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    border: 3px solid #c8a050;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: bold;
+    color: transparent;
+    position: relative;
+    box-shadow: inset -4px -6px 12px rgba(0,0,0,0.12), 3px 3px 0 rgba(0,0,0,0.25);
+    user-select: none;
+    transition: transform 0.15s;
+}
+.egg:not(.locked):not(.cracked):hover { transform: scale(1.07) rotate(-3deg); }
+.egg.cracked {
+    background: radial-gradient(ellipse at 38% 35%, #ffe97a, #ffb700);
+    color: #222;
+    animation: eggPop 0.35s ease-out;
+}
+.egg.locked { opacity: 0.45; cursor: default; filter: grayscale(0.4); }
+
+@keyframes eggPop {
+    0%   { transform: scale(1)    rotate(0deg); }
+    30%  { transform: scale(1.28) rotate(-10deg); }
+    60%  { transform: scale(0.92) rotate(7deg); }
+    100% { transform: scale(1)    rotate(0deg); }
+}
+
+/* Choice buttons */
+.choices { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; max-width: 520px; margin: 12px 0; }
+.choice-btn {
+    background: #6e6e6e;
+    border: 3px solid #111;
+    border-bottom: 5px solid #2a2a2a;
+    border-right: 5px solid #2a2a2a;
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    font-size: 26px;
+    font-weight: bold;
+    padding: 13px 22px;
+    cursor: pointer;
+    min-width: 110px;
+    text-align: center;
+    text-shadow: 2px 2px 0 #000;
+    user-select: none;
+}
+.choice-btn:active:not(.correct):not(.wrong) { transform: scale(0.95); }
+.choice-btn.correct { background: #3d7a1f; border-color: #000; border-bottom-color: #1a3a00; border-right-color: #1a3a00; }
+.choice-btn.wrong   { background: #7a1f1f; border-color: #000; border-bottom-color: #3a0000; border-right-color: #3a0000; }
+
+/* Feedback badge */
+.feedback-box { min-height: 55px; display: flex; align-items: center; justify-content: center; margin: 4px 0; }
+.pop { animation: popIn 0.45s ease-out both; display: inline-block; }
+@keyframes popIn {
+    0%  { transform: scale(0) rotate(-15deg); opacity: 0; }
+    70% { transform: scale(1.2) rotate(3deg); opacity: 1; }
+    100%{ transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* Word display */
+.word-pic   { font-size: 72px; line-height: 1; margin: 6px 0; }
+.word-label { color: #ffd700; font-size: 30px; font-weight: bold; text-shadow: 2px 2px 0 #000; letter-spacing: 4px; margin: 4px 0; }
+.assembled  { font-size: 34px; font-weight: bold; color: #fff; text-shadow: 2px 2px 0 #000; letter-spacing: 10px; min-height: 48px; }
+
+/* Flash egg override */
+#flash-egg {
+    width: 150px; height: 178px;
+    font-size: 26px;
+    cursor: default;
+}
+
+/* Instruction text */
+.instruct { font-size: 15px; text-align: center; max-width: 380px; margin: 6px 0; }
+
+/* Reward */
+.stars-row { display: flex; gap: 8px; justify-content: center; margin: 8px 0; }
+.star { font-size: 46px; display: inline-block; animation: popIn 0.4s ease-out both; }
+.big-block { display: inline-block; width: 44px; height: 44px; border: 2px solid #000; border-bottom: 4px solid rgba(0,0,0,0.5); border-right: 4px solid rgba(0,0,0,0.5); vertical-align: middle; }
+
+/* Steve bounce on intro */
+.steve { font-size: 64px; animation: bounce 2s infinite; display: inline-block; }
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-12px); }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .egg { width: 72px; height: 88px; font-size: 26px; }
+    #flash-egg { width: 120px; height: 144px; }
+    .choice-btn { font-size: 20px; padding: 11px 16px; min-width: 90px; }
+    .word-pic { font-size: 56px; }
+    .mc-btn { font-size: 17px; padding: 12px 22px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Animated clouds -->
+<div class="cloud" style="width:90px;top:8%;animation-duration:28s;animation-delay:-5s"></div>
+<div class="cloud" style="width:60px;top:16%;animation-duration:38s;animation-delay:-18s"></div>
+<div class="cloud" style="width:110px;top:6%;animation-duration:45s;animation-delay:-30s"></div>
+
+<!-- Score bar -->
+<div id="scorebar">
+    <span class="sblock sb-d"></span><span class="sb-score" id="sc-d">0</span>
+    <span class="sblock sb-g" style="margin-left:6px"></span><span class="sb-score" id="sc-g">0</span>
+    <span class="sblock sb-e" style="margin-left:6px"></span><span class="sb-score" id="sc-e">0</span>
+    <div id="progress-wrap">
+        <span id="round-lbl">1/9</span>
+        <div id="prog-bar"><div id="prog-fill" style="width:0%"></div></div>
+    </div>
+</div>
+
+<!-- ===== INTRO ===== -->
+<div class="screen active" id="s-intro">
+    <div class="steve">🧱</div>
+    <div class="px" style="font-size:30px;margin:16px 0 8px;text-align:center">PHONICS<br>EGG MINE</div>
+    <div style="color:#ddf;font-size:14px;letter-spacing:1px;text-align:center;text-shadow:1px 1px 0 #000;margin-bottom:24px">
+        Crack the eggs · Learn the sounds · Build your world!
+    </div>
+    <button class="mc-btn" onclick="startSession()" style="font-size:26px;padding:18px 54px">▶ PLAY</button>
+</div>
+
+<!-- ===== GAME 1 — CRACK THE WORD ===== -->
+<div class="screen" id="s-g1">
+    <div class="game-badge">🥚 CRACK THE WORD</div>
+    <div class="px instruct" id="g1-inst">Tap each egg to crack the sounds!</div>
+    <div class="word-pic" id="g1-pic">🐱</div>
+    <div class="word-label" id="g1-word"></div>
+    <div class="egg-row" id="g1-eggs"></div>
+    <div class="assembled" id="g1-asm"></div>
+    <div class="feedback-box" id="g1-fb"></div>
+</div>
+
+<!-- ===== GAME 2 — EGG BLEND ===== -->
+<div class="screen" id="s-g2">
+    <div class="game-badge">🔊 EGG BLEND</div>
+    <div class="px instruct" id="g2-inst">Listen to the eggs, then pick the word!</div>
+    <div class="egg-row" id="g2-eggs"></div>
+    <button class="mc-btn" id="g2-replay" onclick="replayBlend()" style="font-size:13px;padding:7px 18px;margin:4px">🔊 Hear Again</button>
+    <div class="choices" id="g2-choices"></div>
+    <div class="feedback-box" id="g2-fb"></div>
+</div>
+
+<!-- ===== GAME 3 — WORD FLASH MINE ===== -->
+<div class="screen" id="s-g3">
+    <div class="game-badge">⚡ WORD FLASH MINE</div>
+    <div class="px instruct" id="g3-inst">Watch the egg! Remember the word!</div>
+    <div class="egg egg-row" id="flash-egg" style="margin:10px auto;color:#999">?</div>
+    <div class="choices" id="g3-choices"></div>
+    <div class="feedback-box" id="g3-fb"></div>
+</div>
+
+<!-- ===== REWARD ===== -->
+<div class="screen" id="s-reward">
+    <div class="px" style="font-size:26px;margin-bottom:10px">GREAT MINING!</div>
+    <div class="stars-row" id="reward-stars"></div>
+    <div style="color:#fff;font-size:15px;text-shadow:1px 1px 0 #000;margin:8px 0">You collected:</div>
+    <div style="display:flex;gap:18px;align-items:center;justify-content:center;margin-bottom:10px">
+        <span class="big-block" style="background:#5cdbd3"></span><span style="color:#5cdbd3;font-size:22px;font-weight:bold;text-shadow:1px 1px 0 #000" id="r-d">0</span>
+        <span class="big-block" style="background:#ffd700"></span><span style="color:#ffd700;font-size:22px;font-weight:bold;text-shadow:1px 1px 0 #000" id="r-g">0</span>
+        <span class="big-block" style="background:#00a550"></span><span style="color:#00a550;font-size:22px;font-weight:bold;text-shadow:1px 1px 0 #000" id="r-e">0</span>
+    </div>
+    <canvas id="build-canvas" width="300" height="180" style="border:3px solid #5d8731;display:block;margin:0 auto 14px"></canvas>
+    <button class="mc-btn" onclick="startSession()">▶ PLAY AGAIN</button>
+    <button class="mc-btn" onclick="window.location.href='game2.html'" style="margin-top:12px;font-size:14px;padding:10px 24px;background:#1a1a6e;border-color:#00e5ff;border-bottom-color:#000033;border-right-color:#000033;color:#00e5ff;text-shadow:0 0 8px #00e5ff">🛸 ALIEN WORD DECODER</button>
+    <button class="mc-btn" onclick="window.location.href='game3.html'" style="margin-top:10px;font-size:14px;padding:10px 24px;background:#1a0a00;border-color:#ffd700;border-bottom-color:#5a3a00;border-right-color:#5a3a00;color:#ffd700;text-shadow:0 0 8px #ffd700">🦕 NUMBER JUNGLE</button>
+</div>
+
+<script>
+// ─── WORD DATABASE ────────────────────────────────────────────────────────────
+const WORDS = [
+    { w:'cat',  ph:['C','A','T'],  sp:['kk','aa','tt'],  em:'🐱', d:['dog','hat','bat'] },
+    { w:'dog',  ph:['D','O','G'],  sp:['dd','oh','gg'],  em:'🐶', d:['log','fog','hog'] },
+    { w:'sun',  ph:['S','U','N'],  sp:['ss','uh','nn'],  em:'☀️',  d:['run','fun','gun'] },
+    { w:'map',  ph:['M','A','P'],  sp:['mm','aa','pp'],  em:'🗺️',  d:['cap','nap','tap'] },
+    { w:'big',  ph:['B','I','G'],  sp:['bb','ih','gg'],  em:'🐘', d:['pig','dig','wig'] },
+    { w:'hop',  ph:['H','O','P'],  sp:['hh','oh','pp'],  em:'🐸', d:['mop','top','pop'] },
+    { w:'run',  ph:['R','U','N'],  sp:['rr','uh','nn'],  em:'👟', d:['sun','fun','bun'] },
+    { w:'bed',  ph:['B','E','D'],  sp:['bb','eh','dd'],  em:'🛏️',  d:['red','fed','led'] },
+    { w:'cup',  ph:['C','U','P'],  sp:['kk','uh','pp'],  em:'☕', d:['pup','sup','cut'] },
+    { w:'sit',  ph:['S','I','T'],  sp:['ss','ih','tt'],  em:'🪑', d:['bit','fit','hit'] },
+    { w:'fan',  ph:['F','A','N'],  sp:['ff','aa','nn'],  em:'🌀', d:['can','man','pan'] },
+    { w:'leg',  ph:['L','E','G'],  sp:['ll','eh','gg'],  em:'🦵', d:['peg','beg','keg'] },
+    { w:'pot',  ph:['P','O','T'],  sp:['pp','oh','tt'],  em:'🪣', d:['dot','hot','got'] },
+    { w:'bug',  ph:['B','U','G'],  sp:['bb','uh','gg'],  em:'🐛', d:['mug','jug','rug'] },
+    { w:'hen',  ph:['H','E','N'],  sp:['hh','eh','nn'],  em:'🐓', d:['ten','pen','den'] },
+    { w:'lip',  ph:['L','I','P'],  sp:['ll','ih','pp'],  em:'👄', d:['tip','dip','hip'] },
+    { w:'net',  ph:['N','E','T'],  sp:['nn','eh','tt'],  em:'🥅', d:['set','get','wet'] },
+    { w:'nut',  ph:['N','U','T'],  sp:['nn','uh','tt'],  em:'🥜', d:['but','cut','gut'] },
+    { w:'pan',  ph:['P','A','N'],  sp:['pp','aa','nn'],  em:'🍳', d:['tan','ban','ran'] },
+    { w:'van',  ph:['V','A','N'],  sp:['vv','aa','nn'],  em:'🚐', d:['tan','ran','man'] },
+    { w:'fox',  ph:['F','O','X'],  sp:['ff','oh','ks'],  em:'🦊', d:['box','ox','log'] },
+    { w:'hat',  ph:['H','A','T'],  sp:['hh','aa','tt'],  em:'🎩', d:['bat','cat','rat'] },
+    { w:'mop',  ph:['M','O','P'],  sp:['mm','oh','pp'],  em:'🧹', d:['top','hop','pop'] },
+    { w:'pig',  ph:['P','I','G'],  sp:['pp','ih','gg'],  em:'🐷', d:['big','dig','wig'] },
+    { w:'jam',  ph:['J','A','M'],  sp:['jj','aa','mm'],  em:'🍓', d:['ham','dam','ram'] },
+    { w:'log',  ph:['L','O','G'],  sp:['ll','oh','gg'],  em:'🪵', d:['dog','fog','hog'] },
+    { w:'mud',  ph:['M','U','D'],  sp:['mm','uh','dd'],  em:'💧', d:['bud','dud','rug'] },
+    { w:'pin',  ph:['P','I','N'],  sp:['pp','ih','nn'],  em:'📌', d:['tin','bin','fin'] },
+    { w:'jet',  ph:['J','E','T'],  sp:['jj','eh','tt'],  em:'✈️',  d:['net','set','wet'] },
+    { w:'web',  ph:['W','E','B'],  sp:['ww','eh','bb'],  em:'🕸️',  d:['red','bed','fed'] },
+];
+
+const SIGHT = [
+    'he','she','was','they','want','this','have','like','can','see',
+    'the','and','to','do','go','no','so','my','we','are',
+    'all','am','be','but','did','eat','get','good','into','must',
+    'new','now','on','our','out','please','ran','ride','saw','say',
+    'soon','that','there','too','under','well','went','what','who','will',
+    'with','yes','black','brown','white','pretty','four','came','play','come',
+    'look','help','here','away','blue','find','funny','in','is','it',
+    'jump','little','make','me','not','one','red','run','said','three',
+    'two','up','where','yellow','you','a','big','down','for','help',
+];
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let S = {};
+
+function resetState() {
+    S = {
+        diamonds: 0, gold: 0, emeralds: 0,
+        round: 0, totalRounds: 9, correct: 0, wrongCount: 0,
+        gameOrder: [0,1,2, 0,1,2, 0,1,2],
+        words: shuffle([...WORDS]).slice(0,6),     // 3 for game1 + 3 for game2
+        sights: shuffle([...SIGHT]).slice(0,12),
+        wi: 0, si: 0,
+        curWord: null,
+        crackedCount: 0,
+        blendWord: null,
+        flashWord: '',
+    };
+}
+
+// ─── SPEECH ──────────────────────────────────────────────────────────────────
+function say(text, rate=0.88, pitch=1.12, cb=null) {
+    if (!window.speechSynthesis) { if (cb) cb(); return; }
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = rate; u.pitch = pitch; u.volume = 1;
+    if (cb) u.onend = cb;
+    speechSynthesis.speak(u);
+}
+
+function showDino(msg, ms, cb) {
+    const ov = document.getElementById('dino-overlay');
+    document.getElementById('dino-msg').textContent = msg;
+    ov.style.display = 'flex';
+    say('Let me help! ' + msg, 0.82, 1.1, () => {
+        setTimeout(() => { ov.style.display = 'none'; if (cb) cb(); }, ms || 1200);
+    });
+}
+
+const PH_MAP = {
+    kk:'k',  bb:'b',  dd:'d',  ff:'f',  gg:'g',  hh:'h',
+    jj:'j',  ll:'l',  mm:'m',  nn:'n',  pp:'p',  rr:'r',
+    ss:'s',  tt:'t',  vv:'v',  ww:'w',  zz:'z',
+    aa:'ahhh', eh:'e...', ih:'ih...', oh:'oh', uh:'u...',
+    ks:'x',   yy:'yuh',
+};
+
+const VOWELS = new Set(['aa','eh','ih','oh','uh']);
+
+function sayPh(code, cb=null) {
+    const text = PH_MAP[code] || code;
+    const rate = VOWELS.has(code) ? 0.65 : 1.8;
+    say(text, rate, 1.25, cb);
+}
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function shuffle(a) {
+    const r = [...a];
+    for (let i = r.length-1; i>0; i--) {
+        const j = 0|Math.random()*(i+1);
+        [r[i],r[j]] = [r[j],r[i]];
+    }
+    return r;
+}
+
+function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.getElementById('scorebar').style.display = id==='s-intro' ? 'none' : 'flex';
+}
+
+function hud() {
+    document.getElementById('sc-d').textContent = S.diamonds;
+    document.getElementById('sc-g').textContent = S.gold;
+    document.getElementById('sc-e').textContent = S.emeralds;
+    document.getElementById('round-lbl').textContent = `${S.round}/${S.totalRounds}`;
+    document.getElementById('prog-fill').style.width = `${(S.round/S.totalRounds)*100}%`;
+}
+
+// ─── SESSION ─────────────────────────────────────────────────────────────────
+function startSession() {
+    resetState();
+    hud();
+    nextRound();
+}
+
+function nextRound() {
+    S.round++;
+    hud();
+    const g = S.gameOrder[S.round - 1];
+    if (g === 0) game1();
+    else if (g === 1) game2();
+    else game3();
+}
+
+function advance(wasCorrect) {
+    if (wasCorrect) S.correct++;
+    if (S.round >= S.totalRounds) {
+        setTimeout(reward, 1300);
+    } else {
+        setTimeout(nextRound, 1300);
+    }
+}
+
+// ─── GAME 1: CRACK THE WORD ──────────────────────────────────────────────────
+function game1() {
+    const wd = S.words[S.wi % S.words.length]; S.wi++;
+    S.curWord = wd; S.crackedCount = 0;
+    show('s-g1');
+
+    document.getElementById('g1-pic').textContent = wd.em;
+    document.getElementById('g1-word').textContent = wd.w.toUpperCase();
+    document.getElementById('g1-asm').textContent = '';
+    document.getElementById('g1-fb').innerHTML = '';
+    document.getElementById('g1-inst').textContent = 'Tap each egg to crack the sounds!';
+
+    const row = document.getElementById('g1-eggs');
+    row.innerHTML = '';
+    wd.ph.forEach((letter, i) => {
+        const e = document.createElement('div');
+        e.className = 'egg' + (i>0?' locked':'');
+        e.id = `e1-${i}`;
+        e.onclick = () => crackOne(i);
+        row.appendChild(e);
+    });
+
+    setTimeout(() => say(`Tap the eggs! The word is: ${wd.w}`, 0.82, 1.1), 350);
+}
+
+function crackOne(idx) {
+    const wd = S.curWord;
+    const e = document.getElementById(`e1-${idx}`);
+    if (!e || e.classList.contains('locked') || e.classList.contains('cracked')) return;
+
+    e.classList.add('cracked');
+    e.textContent = wd.ph[idx];
+    sayPh(wd.sp[idx]);
+
+    const asm = document.getElementById('g1-asm');
+    asm.textContent += wd.ph[idx];
+    S.crackedCount++;
+
+    const next = document.getElementById(`e1-${idx+1}`);
+    if (next) setTimeout(() => next.classList.remove('locked'), 280);
+
+    if (S.crackedCount >= wd.ph.length) {
+        setTimeout(() => {
+            say(`${wd.w}! You got a diamond!`, 0.85, 1.15);
+            document.getElementById('g1-fb').innerHTML = '<span class="pop" style="font-size:46px">💎 +1</span>';
+            S.diamonds++; hud();
+            advance(true);
+        }, 750);
+    }
+}
+
+// ─── GAME 2: EGG BLEND ───────────────────────────────────────────────────────
+function game2() {
+    S.wrongCount = 0;
+    const wd = S.words[(S.wi + 3) % S.words.length]; S.wi++;
+    S.blendWord = wd;
+    show('s-g2');
+
+    document.getElementById('g2-fb').innerHTML = '';
+    document.getElementById('g2-inst').textContent = 'Listen to the eggs, then pick the word!';
+
+    // Build silent eggs
+    const row = document.getElementById('g2-eggs');
+    row.innerHTML = '';
+    wd.ph.forEach((_, i) => {
+        const e = document.createElement('div');
+        e.className = 'egg';
+        e.id = `e2-${i}`;
+        e.textContent = '?';
+        e.style.color = '#999';
+        e.style.cursor = 'default';
+        row.appendChild(e);
+    });
+
+    // Build choices
+    const opts = shuffle([wd.w, ...wd.d.slice(0,3)]);
+    const cd = document.getElementById('g2-choices');
+    cd.innerHTML = '';
+    opts.forEach(o => {
+        const b = document.createElement('button');
+        b.className = 'choice-btn';
+        b.textContent = o;
+        b.onclick = () => pickBlend(o, wd.w);
+        cd.appendChild(b);
+    });
+
+    setTimeout(() => playBlend(wd, 0), 600);
+}
+
+function playBlend(wd, idx) {
+    if (idx >= wd.ph.length) return;
+    const e = document.getElementById(`e2-${idx}`);
+    if (e) { e.classList.add('cracked'); e.textContent = wd.ph[idx]; e.style.color = '#222'; }
+    sayPh(wd.sp[idx], () => setTimeout(() => playBlend(wd, idx+1), 300));
+}
+
+function replayBlend() {
+    if (!S.blendWord) return;
+    S.blendWord.ph.forEach((_,i) => {
+        const e = document.getElementById(`e2-${i}`);
+        if (e) { e.classList.remove('cracked'); e.textContent='?'; e.style.color='#999'; }
+    });
+    setTimeout(() => playBlend(S.blendWord, 0), 250);
+}
+
+function pickBlend(choice, correct) {
+    const ok = choice === correct;
+    if (ok) {
+        document.querySelectorAll('#g2-choices .choice-btn').forEach(b => { b.onclick = null; });
+        document.querySelectorAll('#g2-choices .choice-btn').forEach(b => {
+            if (b.textContent === correct) b.classList.add('correct');
+        });
+        say(`${correct}! Great job! Gold block!`, 0.85, 1.15);
+        document.getElementById('g2-fb').innerHTML = '<span class="pop" style="font-size:46px">🥇 +1</span>';
+        S.gold++; hud(); advance(true);
+    } else {
+        S.wrongCount++;
+        document.querySelectorAll('#g2-choices .choice-btn').forEach(b => {
+            if (b.textContent === choice) b.classList.add('wrong');
+        });
+        if (S.wrongCount >= 2) {
+            document.querySelectorAll('#g2-choices .choice-btn').forEach(b => { b.onclick = null; });
+            document.querySelectorAll('#g2-choices .choice-btn').forEach(b => {
+                if (b.textContent === correct) b.classList.add('correct');
+            });
+            showDino('The word is ' + correct + '!', 2000, () => {
+                document.getElementById('g2-fb').innerHTML = '<span class="pop" style="font-size:36px;color:#ffd">🦕 Now you know!</span>';
+                advance(false);
+            });
+        } else {
+            say('Try again! Listen to the sounds!', 0.85, 1.0);
+            document.getElementById('g2-fb').innerHTML = '<span class="pop" style="font-size:32px;color:#ffd">🦕 Try again!</span>';
+            setTimeout(() => {
+                document.querySelectorAll('#g2-choices .choice-btn').forEach(b => {
+                    b.classList.remove('wrong');
+                    b.onclick = () => pickBlend(b.textContent, correct);
+                });
+                document.getElementById('g2-fb').innerHTML = '';
+            }, 1200);
+        }
+    }
+}
+
+// ─── GAME 3: WORD FLASH MINE ─────────────────────────────────────────────────
+function game3() {
+    S.wrongCount = 0;
+    const word = S.sights[S.si % S.sights.length]; S.si++;
+    S.flashWord = word;
+    show('s-g3');
+
+    document.getElementById('g3-fb').innerHTML = '';
+    document.getElementById('g3-inst').textContent = 'Watch the egg! Remember the word!';
+    document.getElementById('g3-choices').innerHTML = '';
+
+    const fe = document.getElementById('flash-egg');
+    fe.classList.remove('cracked');
+    fe.style.color = '#999';
+    fe.textContent = '?';
+
+    // Wrong choices — different sight words
+    const wrongs = shuffle(SIGHT.filter(w => w !== word)).slice(0,3);
+    const opts = shuffle([word, ...wrongs]);
+
+    setTimeout(() => {
+        say('Watch the egg! Remember the word!', 0.85, 1.1, () => {
+            fe.textContent = word.toUpperCase();
+            fe.style.color = '#222';
+            fe.classList.add('cracked');
+            say(word, 0.75, 1.15);
+
+            // Hide word 4s after it appears
+            setTimeout(() => {
+                fe.classList.remove('cracked');
+                fe.style.color = '#999';
+                fe.textContent = '?';
+
+                // Show choices 350ms later
+                setTimeout(() => {
+                    say('Which word did you see?', 0.85, 1.1);
+                    const cd = document.getElementById('g3-choices');
+                    cd.innerHTML = '';
+                    opts.forEach(o => {
+                        const b = document.createElement('button');
+                        b.className = 'choice-btn';
+                        b.textContent = o.toUpperCase();
+                        b.onclick = () => pickFlash(o, word);
+                        cd.appendChild(b);
+                    });
+                }, 350);
+            }, 4000);
+        });
+    }, 450);
+}
+
+function pickFlash(choice, correct) {
+    const ok = choice === correct;
+    if (ok) {
+        document.querySelectorAll('#g3-choices .choice-btn').forEach(b => { b.onclick = null; });
+        document.querySelectorAll('#g3-choices .choice-btn').forEach(b => {
+            if (b.textContent.toLowerCase() === correct) b.classList.add('correct');
+        });
+        say(correct + '! You got an emerald!', 0.85, 1.15);
+        document.getElementById('g3-fb').innerHTML = '<span class="pop" style="font-size:46px">💚 +1</span>';
+        S.emeralds++; hud(); advance(true);
+    } else {
+        S.wrongCount++;
+        document.querySelectorAll('#g3-choices .choice-btn').forEach(b => {
+            if (b.textContent.toLowerCase() === choice) b.classList.add('wrong');
+        });
+        if (S.wrongCount >= 2) {
+            document.querySelectorAll('#g3-choices .choice-btn').forEach(b => { b.onclick = null; });
+            document.querySelectorAll('#g3-choices .choice-btn').forEach(b => {
+                if (b.textContent.toLowerCase() === correct) b.classList.add('correct');
+            });
+            const fe = document.getElementById('flash-egg');
+            fe.textContent = correct.toUpperCase(); fe.style.color = '#222'; fe.classList.add('cracked');
+            showDino('The word is ' + correct + '!', 2500, () => {
+                fe.classList.remove('cracked'); fe.style.color = '#999'; fe.textContent = '?';
+                document.getElementById('g3-fb').innerHTML = '<span class="pop" style="font-size:36px;color:#ffd">🦕 Now you know!</span>';
+                advance(false);
+            });
+        } else {
+            say('Try again! Which word did you see?', 0.85, 1.0);
+            document.getElementById('g3-fb').innerHTML = '<span class="pop" style="font-size:32px;color:#ffd">🦕 Try again!</span>';
+            setTimeout(() => {
+                document.querySelectorAll('#g3-choices .choice-btn').forEach(b => {
+                    b.classList.remove('wrong');
+                    b.onclick = () => pickFlash(b.textContent.toLowerCase(), correct);
+                });
+                document.getElementById('g3-fb').innerHTML = '';
+            }, 1200);
+        }
+    }
+}
+
+// ─── REWARD ──────────────────────────────────────────────────────────────────
+function reward() {
+    show('s-reward');
+    document.getElementById('r-d').textContent = S.diamonds;
+    document.getElementById('r-g').textContent = S.gold;
+    document.getElementById('r-e').textContent = S.emeralds;
+
+    const pct = S.correct / S.totalRounds;
+    const stars = pct >= 0.9 ? 3 : pct >= 0.6 ? 2 : 1;
+    const sr = document.getElementById('reward-stars');
+    sr.innerHTML = '';
+    ['⭐','⭐','⭐'].forEach((s,i) => {
+        const el = document.createElement('span');
+        el.className = 'star';
+        el.textContent = i < stars ? '⭐' : '☆';
+        el.style.animationDelay = `${i*0.18}s`;
+        sr.appendChild(el);
+    });
+
+    drawHouse(S.diamonds, S.gold, S.emeralds);
+
+    const msg = stars===3 ? 'Amazing! Three stars! You are a super miner!'
+              : stars===2 ? 'Great job! Two stars! You are getting so good!'
+              : 'Good work! Keep practicing those sounds!';
+    setTimeout(() => say(msg, 0.85, 1.15), 300);
+}
+
+function drawHouse(d, g, e) {
+    const cv = document.getElementById('build-canvas');
+    const cx = cv.getContext('2d');
+    const bs = 20;
+    cx.clearRect(0,0,cv.width,cv.height);
+
+    // Sky
+    cx.fillStyle = '#87CEEB'; cx.fillRect(0,0,cv.width,cv.height);
+    // Ground
+    cx.fillStyle = '#5d8731'; cx.fillRect(0,cv.height-36,cv.width,18);
+    cx.fillStyle = '#8b5e3c'; cx.fillRect(0,cv.height-18,cv.width,18);
+
+    const mx = cv.width/2 - bs; // anchor x (left of center 2-wide base)
+    const gy = cv.height - 36;  // ground top
+
+    function blk(col, x, y) {
+        cx.fillStyle = col; cx.fillRect(x,y,bs,bs);
+        cx.fillStyle='rgba(255,255,255,0.28)'; cx.fillRect(x,y,bs,3); cx.fillRect(x,y,3,bs);
+        cx.fillStyle='rgba(0,0,0,0.28)'; cx.fillRect(x,y+bs-3,bs,3); cx.fillRect(x+bs-3,y,3,bs);
+        cx.strokeStyle='rgba(0,0,0,0.4)'; cx.lineWidth=1; cx.strokeRect(x,y,bs,bs);
+    }
+
+    // Stone foundation (always)
+    [-bs,0,bs,2*bs].forEach(dx => blk('#7a7a7a', mx+dx, gy-bs));
+
+    // Diamond walls
+    if (d>=1) { blk('#5cdbd3',mx-bs,gy-2*bs); blk('#5cdbd3',mx+2*bs,gy-2*bs); }
+    if (d>=2) { blk('#5cdbd3',mx-bs,gy-3*bs); blk('#5cdbd3',mx+2*bs,gy-3*bs); }
+    if (d>=3) { blk('#5cdbd3',mx,gy-2*bs); blk('#5cdbd3',mx+bs,gy-2*bs); }
+
+    // Gold roof
+    if (g>=1) { blk('#ffd700',mx,gy-4*bs); blk('#ffd700',mx+bs,gy-4*bs); }
+    if (g>=2) { blk('#ffd700',mx-bs,gy-4*bs); blk('#ffd700',mx+2*bs,gy-4*bs); }
+    if (g>=3) { blk('#ffd700',mx+bs/2,gy-5*bs); }
+
+    // Emerald decor
+    if (e>=1) { blk('#00a550',mx-2*bs,gy-bs); blk('#00a550',mx+3*bs,gy-bs); }
+    if (e>=2) { blk('#00a550',mx-2*bs,gy-2*bs); blk('#00a550',mx+3*bs,gy-2*bs); }
+    if (e>=3) { blk('#00a550',mx-2*bs,gy-3*bs); blk('#00a550',mx+3*bs,gy-3*bs); }
+}
+
+// ─── SPEECH WARM-UP (required on iOS/Android before first auto-play) ─────────
+let _warmed = false;
+document.addEventListener('click', () => {
+    if (_warmed) return; _warmed = true;
+    const u = new SpeechSynthesisUtterance(' ');
+    u.volume = 0; speechSynthesis.speak(u);
+}, false);
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+
+<!-- Dino helper overlay -->
+<div id="dino-overlay" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.78);align-items:center;justify-content:center">
+    <div style="background:#2d4f0f;border:5px solid #5d8731;padding:28px 32px;text-align:center;max-width:300px;box-shadow:0 0 0 3px #000">
+        <div style="font-size:80px;line-height:1">🦕</div>
+        <div style="color:#fff;font-size:18px;font-weight:bold;text-shadow:2px 2px 0 #000;margin-top:10px;letter-spacing:1px" id="dino-msg"></div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Alien Word Decoder</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Learn &amp; Play">
+<meta name="theme-color" content="#06061e">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+
+body { background: #06061e; font-family: 'Courier New', monospace; min-height: 100vh; overflow: hidden; position: relative; }
+
+/* Star field */
+.star-field { position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: 0; pointer-events: none; }
+.star { position: absolute; background: #fff; border-radius: 50%; animation: twinkle infinite; }
+@keyframes twinkle { 0%,100%{opacity:0.15} 50%{opacity:1} }
+
+/* Screens */
+.screen { display: none; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; flex-direction: column; align-items: center; justify-content: center; z-index: 1; padding-top: 58px; padding-bottom: 20px; }
+.screen.active { display: flex; }
+
+/* Score bar */
+#scorebar { position: fixed; top: 0; left: 0; right: 0; background: rgba(0,0,0,0.88); border-bottom: 3px solid #00ff88; padding: 7px 16px; display: none; align-items: center; gap: 14px; z-index: 50; }
+.sbl { display: inline-block; width: 22px; height: 22px; border: 2px solid rgba(255,255,255,0.5); border-bottom: 3px solid rgba(0,0,0,0.5); vertical-align: middle; }
+.sb-c { background: #00e5ff; }
+.sb-p { background: #bf5af2; }
+.sb-s { background: #ffd60a; }
+.sb-n  { color: #fff; font-weight: bold; font-size: 15px; vertical-align: middle; }
+#prog-bar { width: 120px; height: 14px; background: #111; border: 2px solid #00ff88; }
+#prog-fill { height: 100%; background: #00ff88; transition: width 0.4s; }
+
+/* Glow text */
+.glow { color: #00e5ff; text-shadow: 0 0 8px #00e5ff, 0 0 18px #00e5ff55; font-weight: bold; letter-spacing: 3px; font-family: 'Courier New', monospace; }
+
+/* UFO */
+.ufo-big { font-size: 70px; animation: hover 2.5s ease-in-out infinite; display: inline-block; }
+.ufo-sm  { font-size: 38px; animation: hover 2.5s ease-in-out infinite; display: inline-block; }
+@keyframes hover { 0%,100%{transform:translateY(0) rotate(-3deg)} 50%{transform:translateY(-12px) rotate(3deg)} }
+
+/* Alien launch button */
+.al-btn { background: #001a3a; border: 2px solid #00ff88; box-shadow: 0 0 12px #00ff8855; color: #00ff88; font-family: 'Courier New', monospace; font-size: 20px; font-weight: bold; padding: 14px 32px; cursor: pointer; letter-spacing: 2px; transition: box-shadow 0.2s, transform 0.1s; }
+.al-btn:active { transform: scale(0.95); box-shadow: 0 0 4px #00ff8855; }
+.al-btn.dim { border-color: #aef; color: #aef; box-shadow: none; font-size: 14px; padding: 10px 22px; }
+
+/* Game badge */
+.badge { background: rgba(0,0,0,0.7); border: 2px solid #00ff88; color: #00ff88; font-weight: bold; font-size: 13px; letter-spacing: 3px; padding: 4px 14px; margin-bottom: 8px; }
+
+/* Alien eggs */
+.egg-row { display: flex; gap: 16px; justify-content: center; margin: 12px 0; }
+.egg {
+    width: 86px; height: 106px;
+    background: radial-gradient(ellipse at 38% 35%, #001a0d, #00100a);
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    border: 3px solid #00ff88;
+    box-shadow: 0 0 12px #00ff8840;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; font-weight: bold; color: transparent;
+    user-select: none; transition: transform 0.15s;
+}
+.egg:not(.locked):not(.cracked):hover { transform: scale(1.08); box-shadow: 0 0 22px #00ff88; }
+.egg.cracked { background: radial-gradient(ellipse at 38% 35%, #00ff88, #00cc66); color: #001a0d; box-shadow: 0 0 22px #00ff88; animation: eggPop 0.35s ease-out; }
+.egg.locked  { opacity: 0.25; cursor: default; }
+@keyframes eggPop { 0%{transform:scale(1) rotate(0)} 30%{transform:scale(1.3) rotate(-10deg)} 60%{transform:scale(0.9) rotate(7deg)} 100%{transform:scale(1) rotate(0)} }
+
+/* Alien word carrier box */
+.carrier { background: rgba(0,229,255,0.07); border: 2px solid #00e5ff; box-shadow: 0 0 18px #00e5ff30; border-radius: 6px; padding: 10px 30px; margin: 8px 0; text-align: center; }
+.alien-word { color: #00e5ff; font-size: 38px; font-weight: bold; letter-spacing: 12px; text-shadow: 0 0 10px #00e5ff; min-height: 54px; }
+.assembled  { font-size: 32px; font-weight: bold; color: #00ff88; text-shadow: 0 0 10px #00ff88; letter-spacing: 10px; min-height: 46px; }
+
+/* Choice buttons */
+.choices { display: flex; gap: 11px; flex-wrap: wrap; justify-content: center; max-width: 520px; margin: 10px 0; }
+.choice-btn { background: #001028; border: 2px solid #00e5ff; box-shadow: 0 0 6px #00e5ff25; color: #00e5ff; font-family: 'Courier New', monospace; font-size: 23px; font-weight: bold; padding: 12px 18px; cursor: pointer; min-width: 106px; text-align: center; letter-spacing: 2px; user-select: none; }
+.choice-btn:active:not(.correct):not(.wrong) { transform: scale(0.95); }
+.choice-btn.correct { background: #002800; border-color: #00ff88; box-shadow: 0 0 14px #00ff88; color: #00ff88; }
+.choice-btn.wrong   { background: #280000; border-color: #ff4444; box-shadow: 0 0 14px #ff4444; color: #ff4444; }
+
+/* Feedback */
+.feedback-box { min-height: 54px; display: flex; align-items: center; justify-content: center; margin: 4px 0; }
+.pop { animation: popIn 0.45s ease-out both; display: inline-block; }
+@keyframes popIn { 0%{transform:scale(0) rotate(-15deg);opacity:0} 70%{transform:scale(1.2) rotate(3deg);opacity:1} 100%{transform:scale(1) rotate(0);opacity:1} }
+
+/* Instruct */
+.instruct { font-size: 14px; text-align: center; max-width: 380px; margin: 5px 0; color: #9cf; }
+
+/* Replay button */
+.replay-btn { background: rgba(0,255,136,0.08); border: 1px solid #00ff88; color: #00ff88; font-family: 'Courier New', monospace; font-size: 13px; padding: 5px 16px; cursor: pointer; margin: 4px; }
+.replay-btn:active { opacity: 0.7; }
+
+/* Word swap */
+.swap-word { font-size: 42px; font-weight: bold; letter-spacing: 10px; min-height: 60px; margin: 8px 0; display: flex; justify-content: center; }
+.sl { display: inline-block; transition: color 0.3s, text-shadow 0.3s; }
+.sl.base    { color: #00e5ff; text-shadow: 0 0 8px #00e5ff; }
+.sl.hot     { color: #ff6b6b; text-shadow: 0 0 12px #ff6b6b; animation: pulse 0.7s infinite; }
+.sl.solved  { color: #00ff88; text-shadow: 0 0 12px #00ff88; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+/* Reward stars */
+.stars-row { display: flex; gap: 8px; justify-content: center; margin: 8px 0; }
+.star-e { font-size: 46px; display: inline-block; animation: popIn 0.4s ease-out both; }
+.big-block { display: inline-block; width: 44px; height: 44px; border: 2px solid rgba(255,255,255,0.4); border-bottom: 4px solid rgba(0,0,0,0.4); vertical-align: middle; }
+
+@media (max-width:480px) {
+    .egg { width: 70px; height: 86px; font-size: 24px; }
+    .choice-btn { font-size: 18px; padding: 10px 13px; min-width: 88px; }
+    .alien-word { font-size: 28px; }
+    .swap-word { font-size: 32px; }
+}
+</style>
+</head>
+<body>
+
+<div class="star-field" id="star-field"></div>
+
+<!-- Score bar -->
+<div id="scorebar">
+    <span class="sbl sb-c"></span><span class="sb-n" id="sc-c">0</span>
+    <span class="sbl sb-p" style="margin-left:6px"></span><span class="sb-n" id="sc-p">0</span>
+    <span class="sbl sb-s" style="margin-left:6px"></span><span class="sb-n" id="sc-s">0</span>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+        <span id="round-lbl" style="color:#888;font-size:12px">1/9</span>
+        <div id="prog-bar"><div id="prog-fill" style="width:0%"></div></div>
+    </div>
+</div>
+
+<!-- INTRO -->
+<div class="screen active" id="s-intro">
+    <div class="ufo-big">🛸</div>
+    <div class="glow" style="font-size:26px;margin:16px 0 6px;text-align:center">ALIEN WORD<br>DECODER</div>
+    <div style="color:#9cf;font-size:14px;letter-spacing:1px;text-align:center;margin-bottom:26px">
+        Crack alien codes!<br>Decode secret signals!<br>Save the galaxy!
+    </div>
+    <button class="al-btn" onclick="startSession()" style="font-size:24px;padding:18px 50px">▶ LAUNCH</button>
+    <button class="al-btn dim" onclick="window.location.href='index.html'" style="margin-top:14px">← Phonics Egg Mine</button>
+</div>
+
+<!-- GAME A: CRACK THE CODE -->
+<div class="screen" id="s-ga">
+    <div class="badge">👽 CRACK THE CODE</div>
+    <div class="ufo-sm" style="margin:4px">🛸</div>
+    <div class="glow instruct" style="font-size:13px">Tap each egg to crack the alien code!</div>
+    <div class="carrier">
+        <div class="alien-word" id="ga-word"></div>
+    </div>
+    <div class="egg-row" id="ga-eggs"></div>
+    <div class="assembled" id="ga-asm"></div>
+    <div class="feedback-box" id="ga-fb"></div>
+</div>
+
+<!-- GAME B: SIGNAL MATCH -->
+<div class="screen" id="s-gb">
+    <div class="badge">📡 SIGNAL MATCH</div>
+    <div class="ufo-sm" style="margin:4px">🛸</div>
+    <div class="glow instruct" style="font-size:13px">Listen! Find the alien word you hear!</div>
+    <button class="replay-btn" onclick="replaySignal()">🔊 Hear Again</button>
+    <div class="choices" id="gb-choices"></div>
+    <div class="feedback-box" id="gb-fb"></div>
+</div>
+
+<!-- GAME C: WORD SWAP -->
+<div class="screen" id="s-gc">
+    <div class="badge">🔄 WORD SWAP</div>
+    <div class="ufo-sm" style="margin:4px">🛸</div>
+    <div class="glow instruct" id="gc-inst" style="font-size:13px;max-width:340px;text-align:center"></div>
+    <div class="swap-word" id="gc-word"></div>
+    <div class="choices" id="gc-choices"></div>
+    <div class="feedback-box" id="gc-fb"></div>
+</div>
+
+<!-- REWARD -->
+<div class="screen" id="s-reward">
+    <div class="glow" style="font-size:22px;margin-bottom:10px">MISSION COMPLETE!</div>
+    <div class="stars-row" id="reward-stars"></div>
+    <div style="color:#9cf;font-size:14px;margin:8px 0">You collected:</div>
+    <div style="display:flex;gap:18px;align-items:center;justify-content:center;margin-bottom:12px">
+        <span class="big-block" style="background:#00e5ff"></span><span style="color:#00e5ff;font-size:22px;font-weight:bold" id="r-c">0</span>
+        <span class="big-block" style="background:#bf5af2"></span><span style="color:#bf5af2;font-size:22px;font-weight:bold" id="r-p">0</span>
+        <span class="big-block" style="background:#ffd60a"></span><span style="color:#ffd60a;font-size:22px;font-weight:bold" id="r-s">0</span>
+    </div>
+    <canvas id="build-canvas" width="300" height="180" style="border:2px solid #00ff88;box-shadow:0 0 14px #00ff8840;display:block;margin:0 auto 14px"></canvas>
+    <button class="al-btn" onclick="startSession()">▶ PLAY AGAIN</button>
+    <button class="al-btn dim" onclick="window.location.href='index.html'" style="margin-top:10px">← Phonics Egg Mine</button>
+    <button class="al-btn" onclick="window.location.href='game3.html'" style="margin-top:10px;border-color:#ffd60a;color:#ffd60a;box-shadow:0 0 12px #ffd60a55">🦕 NUMBER JUNGLE</button>
+</div>
+
+<script>
+// ─── NONSENSE WORD DB ─────────────────────────────────────────────────────────
+const NONSENSE = [
+    { w:'zaf', ph:['Z','A','F'], sp:['zz','aa','ff'],  d:['baf','daf','waf'] },
+    { w:'biv', ph:['B','I','V'], sp:['bb','ih','vv'],  d:['div','giv','niv'] },
+    { w:'fep', ph:['F','E','P'], sp:['ff','eh','pp'],  d:['sep','lep','rep'] },
+    { w:'gon', ph:['G','O','N'], sp:['gg','oh','nn'],  d:['bon','don','fon'] },
+    { w:'kup', ph:['K','U','P'], sp:['kk','uh','pp'],  d:['bup','dup','tup'] },
+    { w:'jev', ph:['J','E','V'], sp:['jj','eh','vv'],  d:['nev','pev','sev'] },
+    { w:'muz', ph:['M','U','Z'], sp:['mm','uh','zz'],  d:['buz','duz','fuz'] },
+    { w:'tiv', ph:['T','I','V'], sp:['tt','ih','vv'],  d:['div','liv','piv'] },
+    { w:'wob', ph:['W','O','B'], sp:['ww','oh','bb'],  d:['gob','pob','sob'] },
+    { w:'yaf', ph:['Y','A','F'], sp:['yy','aa','ff'],  d:['baf','naf','taf'] },
+    { w:'kem', ph:['K','E','M'], sp:['kk','eh','mm'],  d:['bem','dem','lem'] },
+    { w:'pib', ph:['P','I','B'], sp:['pp','ih','bb'],  d:['dib','lib','rib'] },
+    { w:'nof', ph:['N','O','F'], sp:['nn','oh','ff'],  d:['bof','dof','mof'] },
+    { w:'raf', ph:['R','A','F'], sp:['rr','aa','ff'],  d:['baf','daf','taf'] },
+    { w:'zim', ph:['Z','I','M'], sp:['zz','ih','mm'],  d:['bim','rim','vim'] },
+    { w:'bov', ph:['B','O','V'], sp:['bb','oh','vv'],  d:['gov','mov','nov'] },
+    { w:'lef', ph:['L','E','F'], sp:['ll','eh','ff'],  d:['bef','def','ref'] },
+    { w:'wup', ph:['W','U','P'], sp:['ww','uh','pp'],  d:['bup','dup','sup'] },
+    { w:'sug', ph:['S','U','G'], sp:['ss','uh','gg'],  d:['dug','lug','pug'] },
+    { w:'dax', ph:['D','A','X'], sp:['dd','aa','ks'],  d:['bax','fax','wax'] },
+];
+
+// ─── WORD SWAP DB ─────────────────────────────────────────────────────────────
+const SWAPS = [
+    { base:'cat', pos:0, newLetter:'B', newWord:'bat', choices:['bat','hat','mat','fat'], inst:'The word is CAT.  Change the first sound to B!' },
+    { base:'dog', pos:0, newLetter:'L', newWord:'log', choices:['log','bog','fog','hog'], inst:'The word is DOG.  Change the first sound to L!' },
+    { base:'sit', pos:0, newLetter:'H', newWord:'hit', choices:['hit','bit','fit','kit'], inst:'The word is SIT.  Change the first sound to H!' },
+    { base:'fan', pos:0, newLetter:'R', newWord:'ran', choices:['ran','can','man','pan'], inst:'The word is FAN.  Change the first sound to R!' },
+    { base:'hop', pos:0, newLetter:'M', newWord:'mop', choices:['mop','top','pop','cop'], inst:'The word is HOP.  Change the first sound to M!' },
+    { base:'bed', pos:0, newLetter:'R', newWord:'red', choices:['red','led','fed','wed'], inst:'The word is BED.  Change the first sound to R!' },
+    { base:'run', pos:0, newLetter:'S', newWord:'sun', choices:['sun','fun','gun','bun'], inst:'The word is RUN.  Change the first sound to S!' },
+    { base:'pin', pos:0, newLetter:'T', newWord:'tin', choices:['tin','bin','fin','win'], inst:'The word is PIN.  Change the first sound to T!' },
+    { base:'map', pos:0, newLetter:'N', newWord:'nap', choices:['nap','cap','gap','tap'], inst:'The word is MAP.  Change the first sound to N!' },
+    { base:'leg', pos:0, newLetter:'B', newWord:'beg', choices:['beg','peg','keg','meg'], inst:'The word is LEG.  Change the first sound to B!' },
+];
+
+// ─── PHONEME MAP (same as Game 1) ────────────────────────────────────────────
+const PH_MAP = {
+    kk:'k',  bb:'b',  dd:'d',  ff:'f',  gg:'g',  hh:'h',
+    jj:'j',  ll:'l',  mm:'m',  nn:'n',  pp:'p',  rr:'r',
+    ss:'s',  tt:'t',  vv:'v',  ww:'w',  zz:'z',  yy:'yuh',
+    aa:'ahhh', eh:'e...', ih:'ih...', oh:'oh', uh:'u...',
+    ks:'x',
+};
+const VOWELS = new Set(['aa','eh','ih','oh','uh']);
+
+function sayPh(code, cb=null) {
+    const text = PH_MAP[code] || code;
+    const rate = VOWELS.has(code) ? 0.65 : 1.8;
+    say(text, rate, 1.25, cb);
+}
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let S = {};
+
+function resetState() {
+    S = {
+        crystals:0, plasma:0, stardust:0,
+        round:0, totalRounds:9, correct:0, wrongCount:0,
+        gameOrder:[0,1,2, 0,1,2, 0,1,2],
+        nonsense: shuffle([...NONSENSE]).slice(0,9),
+        swaps:    shuffle([...SWAPS]).slice(0,3),
+        ni:0, si:0,
+        curWord:null, crackedCount:0,
+        signalWord:null, curSwap:null,
+    };
+}
+
+// ─── SPEECH ───────────────────────────────────────────────────────────────────
+function say(text, rate=0.88, pitch=1.05, cb=null) {
+    if (!window.speechSynthesis) { if(cb) cb(); return; }
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate=rate; u.pitch=pitch; u.volume=1;
+    if(cb) u.onend=cb;
+    speechSynthesis.speak(u);
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function shuffle(a) {
+    const r=[...a];
+    for(let i=r.length-1;i>0;i--){const j=0|Math.random()*(i+1);[r[i],r[j]]=[r[j],r[i]];}
+    return r;
+}
+
+function showDino(msg, ms, cb) {
+    const ov=document.getElementById('dino-overlay');
+    document.getElementById('dino-msg').textContent=msg;
+    ov.style.display='flex';
+    say('Let me help! '+msg, 0.82, 1.05, ()=>{
+        setTimeout(()=>{ ov.style.display='none'; if(cb) cb(); }, ms||1200);
+    });
+}
+function show(id) {
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.getElementById('scorebar').style.display = id==='s-intro' ? 'none' : 'flex';
+}
+function hud() {
+    document.getElementById('sc-c').textContent=S.crystals;
+    document.getElementById('sc-p').textContent=S.plasma;
+    document.getElementById('sc-s').textContent=S.stardust;
+    document.getElementById('round-lbl').textContent=`${S.round}/${S.totalRounds}`;
+    document.getElementById('prog-fill').style.width=`${(S.round/S.totalRounds)*100}%`;
+}
+
+// ─── SESSION ──────────────────────────────────────────────────────────────────
+function startSession() { resetState(); hud(); nextRound(); }
+
+function nextRound() {
+    S.round++; hud();
+    const g = S.gameOrder[S.round-1];
+    if(g===0) gameA();
+    else if(g===1) gameB();
+    else gameC();
+}
+
+function advance(ok) {
+    if(ok) S.correct++;
+    if(S.round>=S.totalRounds) setTimeout(reward,1300);
+    else setTimeout(nextRound,1300);
+}
+
+// ─── GAME A: CRACK THE CODE ───────────────────────────────────────────────────
+function gameA() {
+    const wd = S.nonsense[S.ni % S.nonsense.length]; S.ni++;
+    S.curWord=wd; S.crackedCount=0;
+    show('s-ga');
+    document.getElementById('ga-word').textContent=wd.w.toUpperCase();
+    document.getElementById('ga-asm').textContent='';
+    document.getElementById('ga-fb').innerHTML='';
+    const row=document.getElementById('ga-eggs');
+    row.innerHTML='';
+    wd.ph.forEach((_,i)=>{
+        const e=document.createElement('div');
+        e.className='egg'+(i>0?' locked':'');
+        e.id=`ea-${i}`;
+        e.onclick=()=>crackA(i);
+        row.appendChild(e);
+    });
+    setTimeout(()=>say(`Crack the alien code! The word is: ${wd.w}`,0.82,1.05),350);
+}
+
+function crackA(idx) {
+    const wd=S.curWord;
+    const e=document.getElementById(`ea-${idx}`);
+    if(!e||e.classList.contains('locked')||e.classList.contains('cracked')) return;
+    e.classList.add('cracked');
+    e.textContent=wd.ph[idx];
+    sayPh(wd.sp[idx]);
+    document.getElementById('ga-asm').textContent+=wd.ph[idx];
+    S.crackedCount++;
+    const next=document.getElementById(`ea-${idx+1}`);
+    if(next) setTimeout(()=>next.classList.remove('locked'),280);
+    if(S.crackedCount>=wd.ph.length){
+        setTimeout(()=>{
+            say(`${wd.w}! Crystal collected!`,0.85,1.05);
+            document.getElementById('ga-fb').innerHTML='<span class="pop" style="font-size:46px;color:#00e5ff">💎 +1</span>';
+            S.crystals++; hud(); advance(true);
+        },750);
+    }
+}
+
+// ─── GAME B: SIGNAL MATCH ─────────────────────────────────────────────────────
+function gameB() {
+    S.wrongCount=0;
+    const wd=S.nonsense[(S.ni+4) % S.nonsense.length]; S.ni++;
+    S.signalWord=wd;
+    show('s-gb');
+    document.getElementById('gb-fb').innerHTML='';
+    const opts=shuffle([wd.w,...wd.d]);
+    const cd=document.getElementById('gb-choices');
+    cd.innerHTML='';
+    opts.forEach(o=>{
+        const b=document.createElement('button');
+        b.className='choice-btn';
+        b.textContent=o.toUpperCase();
+        b.onclick=()=>pickSignal(o,wd.w);
+        cd.appendChild(b);
+    });
+    setTimeout(()=>say(`Listen carefully! Find the alien word... ${wd.w}`,0.80,1.05),500);
+}
+
+function replaySignal() {
+    if(S.signalWord) say(S.signalWord.w,0.76,1.05);
+}
+
+function pickSignal(choice,correct) {
+    const ok=choice===correct;
+    if(ok){
+        document.querySelectorAll('#gb-choices .choice-btn').forEach(b=>b.onclick=null);
+        document.querySelectorAll('#gb-choices .choice-btn').forEach(b=>{
+            if(b.textContent.toLowerCase()===correct) b.classList.add('correct');
+        });
+        say(correct+'! Plasma collected!',0.85,1.05);
+        document.getElementById('gb-fb').innerHTML='<span class="pop" style="font-size:46px;color:#bf5af2">🔮 +1</span>';
+        S.plasma++; hud(); advance(true);
+    } else {
+        S.wrongCount++;
+        document.querySelectorAll('#gb-choices .choice-btn').forEach(b=>{
+            if(b.textContent.toLowerCase()===choice) b.classList.add('wrong');
+        });
+        if(S.wrongCount>=2){
+            document.querySelectorAll('#gb-choices .choice-btn').forEach(b=>b.onclick=null);
+            document.querySelectorAll('#gb-choices .choice-btn').forEach(b=>{
+                if(b.textContent.toLowerCase()===correct) b.classList.add('correct');
+            });
+            showDino('The alien word is '+correct+'!', 2000, ()=>{
+                document.getElementById('gb-fb').innerHTML='<span class="pop" style="font-size:36px;color:#9cf">🦕 Now you know!</span>';
+                advance(false);
+            });
+        } else {
+            say('Try again! Listen carefully!',0.85,1.0);
+            document.getElementById('gb-fb').innerHTML='<span class="pop" style="font-size:32px;color:#9cf">🦕 Try again!</span>';
+            setTimeout(()=>{
+                document.querySelectorAll('#gb-choices .choice-btn').forEach(b=>{
+                    b.classList.remove('wrong');
+                    b.onclick=()=>pickSignal(b.textContent.toLowerCase(),correct);
+                });
+                document.getElementById('gb-fb').innerHTML='';
+            },1200);
+        }
+    }
+}
+
+// ─── GAME C: WORD SWAP ────────────────────────────────────────────────────────
+function gameC() {
+    S.wrongCount=0;
+    const sw=S.swaps[S.si % S.swaps.length]; S.si++;
+    S.curSwap=sw;
+    show('s-gc');
+    document.getElementById('gc-fb').innerHTML='';
+    document.getElementById('gc-inst').textContent=sw.inst;
+
+    // Build base word with glowing hot letter
+    const wd=document.getElementById('gc-word');
+    wd.innerHTML='';
+    [...sw.base.toUpperCase()].forEach((l,i)=>{
+        const span=document.createElement('span');
+        span.className='sl '+(i===sw.pos?'hot':'base');
+        span.id=`sl-${i}`;
+        span.textContent=l;
+        wd.appendChild(span);
+    });
+
+    // Build choices — auto-speak each after a delay so Michael hears his options
+    const opts=shuffle([...sw.choices]);
+    const cd=document.getElementById('gc-choices');
+    cd.innerHTML='';
+    opts.forEach(o=>{
+        const b=document.createElement('button');
+        b.className='choice-btn';
+        b.textContent=o.toUpperCase();
+        b.onclick=()=>pickSwap(o,sw);
+        cd.appendChild(b);
+    });
+
+    // Speak instruction, then speak each choice so he can hear all options
+    setTimeout(()=>{
+        say(sw.inst+' What is the new word?', 0.80, 1.05, ()=>{
+            setTimeout(()=>speakChoices(opts,0),400);
+        });
+    },400);
+}
+
+function speakChoices(opts, idx) {
+    if(idx>=opts.length) return;
+    say(opts[idx], 0.78, 1.05, ()=>setTimeout(()=>speakChoices(opts,idx+1),300));
+}
+
+function pickSwap(choice,sw) {
+    const ok=choice===sw.newWord;
+    const hotSpan=document.getElementById('sl-'+sw.pos);
+    if(ok){
+        document.querySelectorAll('#gc-choices .choice-btn').forEach(b=>b.onclick=null);
+        document.querySelectorAll('#gc-choices .choice-btn').forEach(b=>{
+            if(b.textContent.toLowerCase()===sw.newWord) b.classList.add('correct');
+        });
+        if(hotSpan){ hotSpan.textContent=sw.newLetter; hotSpan.className='sl solved'; }
+        say(sw.newWord+'! Stardust collected!',0.85,1.05);
+        document.getElementById('gc-fb').innerHTML='<span class="pop" style="font-size:46px;color:#ffd60a">⭐ +1</span>';
+        S.stardust++; hud(); advance(true);
+    } else {
+        S.wrongCount++;
+        document.querySelectorAll('#gc-choices .choice-btn').forEach(b=>{
+            if(b.textContent.toLowerCase()===choice) b.classList.add('wrong');
+        });
+        if(S.wrongCount>=2){
+            document.querySelectorAll('#gc-choices .choice-btn').forEach(b=>b.onclick=null);
+            document.querySelectorAll('#gc-choices .choice-btn').forEach(b=>{
+                if(b.textContent.toLowerCase()===sw.newWord) b.classList.add('correct');
+            });
+            if(hotSpan){ hotSpan.textContent=sw.newLetter; hotSpan.className='sl solved'; }
+            showDino('The new word is '+sw.newWord+'!', 2000, ()=>{
+                document.getElementById('gc-fb').innerHTML='<span class="pop" style="font-size:36px;color:#9cf">🦕 Now you know!</span>';
+                advance(false);
+            });
+        } else {
+            say('Try again! Listen to the choices!',0.85,1.0);
+            document.getElementById('gc-fb').innerHTML='<span class="pop" style="font-size:32px;color:#9cf">🦕 Try again!</span>';
+            setTimeout(()=>{
+                document.querySelectorAll('#gc-choices .choice-btn').forEach(b=>{
+                    b.classList.remove('wrong');
+                    b.onclick=()=>pickSwap(b.textContent.toLowerCase(),sw);
+                });
+                document.getElementById('gc-fb').innerHTML='';
+            },1200);
+        }
+    }
+}
+
+// ─── REWARD ───────────────────────────────────────────────────────────────────
+function reward() {
+    show('s-reward');
+    document.getElementById('r-c').textContent=S.crystals;
+    document.getElementById('r-p').textContent=S.plasma;
+    document.getElementById('r-s').textContent=S.stardust;
+    const pct=S.correct/S.totalRounds;
+    const stars=pct>=0.9?3:pct>=0.6?2:1;
+    const sr=document.getElementById('reward-stars');
+    sr.innerHTML='';
+    [0,1,2].forEach(i=>{
+        const el=document.createElement('span');
+        el.className='star-e';
+        el.textContent=i<stars?'⭐':'☆';
+        el.style.animationDelay=`${i*0.18}s`;
+        sr.appendChild(el);
+    });
+    drawStation(S.crystals,S.plasma,S.stardust);
+    const msg=stars===3?'Amazing! Three stars! The galaxy is saved!'
+             :stars===2?'Great job! Two stars! The aliens are impressed!'
+             :'Good work! Keep practicing those alien words!';
+    setTimeout(()=>say(msg,0.85,1.05),300);
+}
+
+function drawStation(c,p,s) {
+    const cv=document.getElementById('build-canvas');
+    const cx=cv.getContext('2d');
+    const bs=18;
+    cx.clearRect(0,0,cv.width,cv.height);
+    cx.fillStyle='#06061e'; cx.fillRect(0,0,cv.width,cv.height);
+    // BG stars
+    for(let i=0;i<35;i++){
+        cx.fillStyle=`rgba(255,255,255,${Math.random()*0.6+0.2})`;
+        cx.beginPath();
+        cx.arc(Math.random()*cv.width,Math.random()*cv.height,Math.random()*1.5+0.3,0,Math.PI*2);
+        cx.fill();
+    }
+    const mx=cv.width/2-bs/2, my=cv.height/2;
+    function blk(col,x,y,glow){
+        cx.shadowColor=glow||col; cx.shadowBlur=glow?14:0;
+        cx.fillStyle=col; cx.fillRect(x,y,bs,bs);
+        cx.fillStyle='rgba(255,255,255,0.22)'; cx.fillRect(x,y,bs,3); cx.fillRect(x,y,3,bs);
+        cx.fillStyle='rgba(0,0,0,0.3)'; cx.fillRect(x,y+bs-3,bs,3); cx.fillRect(x+bs-3,y,3,bs);
+        cx.strokeStyle='rgba(255,255,255,0.15)'; cx.lineWidth=1; cx.strokeRect(x,y,bs,bs);
+        cx.shadowBlur=0;
+    }
+    // Core (always)
+    blk('#444',mx,my);
+    blk('#444',mx,my-bs);
+    // Crystal wings (cyan)
+    if(c>=1){blk('#00e5ff',mx-bs*2,my,'#00e5ff');blk('#00e5ff',mx+bs*2,my,'#00e5ff');}
+    if(c>=2){blk('#00e5ff',mx-bs*3,my,'#00e5ff');blk('#00e5ff',mx+bs*3,my,'#00e5ff');}
+    if(c>=3){blk('#00e5ff',mx-bs,my-bs*2,'#00e5ff');blk('#00e5ff',mx+bs,my-bs*2,'#00e5ff');}
+    // Plasma towers (purple)
+    if(p>=1){blk('#bf5af2',mx,my-bs*2,'#bf5af2');}
+    if(p>=2){blk('#bf5af2',mx,my-bs*3,'#bf5af2');blk('#bf5af2',mx,my+bs,'#bf5af2');}
+    if(p>=3){blk('#bf5af2',mx-bs,my-bs*3,'#bf5af2');blk('#bf5af2',mx+bs,my-bs*3,'#bf5af2');}
+    // Stardust engines (gold)
+    if(s>=1){blk('#ffd60a',mx-bs,my+bs,'#ffd60a');blk('#ffd60a',mx+bs,my+bs,'#ffd60a');}
+    if(s>=2){blk('#ffd60a',mx-bs*2,my-bs,'#ffd60a');blk('#ffd60a',mx+bs*2,my-bs,'#ffd60a');}
+    if(s>=3){blk('#ffd60a',mx,my-bs*4,'#ffd60a');}
+}
+
+// ─── STAR FIELD ───────────────────────────────────────────────────────────────
+(function(){
+    const sf=document.getElementById('star-field');
+    for(let i=0;i<90;i++){
+        const s=document.createElement('div');
+        s.className='star';
+        const sz=Math.random()*2.2+0.4;
+        s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-duration:${(Math.random()*3+2).toFixed(1)}s;animation-delay:${(Math.random()*4).toFixed(1)}s`;
+        sf.appendChild(s);
+    }
+})();
+
+// ─── SPEECH WARM-UP ───────────────────────────────────────────────────────────
+let _w=false;
+document.addEventListener('click',()=>{
+    if(_w) return; _w=true;
+    const u=new SpeechSynthesisUtterance(' ');
+    u.volume=0; speechSynthesis.speak(u);
+},false);
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+
+<!-- Dino helper overlay -->
+<div id="dino-overlay" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.82);align-items:center;justify-content:center">
+    <div style="background:#001a3a;border:5px solid #00ff88;padding:28px 32px;text-align:center;max-width:300px;box-shadow:0 0 24px #00ff8840">
+        <div style="font-size:80px;line-height:1">🦕</div>
+        <div style="color:#00ff88;font-size:18px;font-weight:bold;letter-spacing:1px;margin-top:10px;text-shadow:0 0 8px #00ff88" id="dino-msg"></div>
+    </div>
+</div>
+</body>
+</html>
