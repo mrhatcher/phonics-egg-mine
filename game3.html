@@ -12,115 +12,92 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+* { box-sizing:border-box; margin:0; padding:0; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+body { background:radial-gradient(ellipse at 50% 0%, #1a4a1a 0%, #061006 100%); font-family:'Courier New',monospace; min-height:100vh; overflow:hidden; position:relative; }
 
-body { background: radial-gradient(ellipse at 50% 0%, #1a4a1a 0%, #061006 100%); font-family: 'Courier New', monospace; min-height: 100vh; overflow: hidden; position: relative; }
-
-/* Fireflies */
-.firefly { position: fixed; border-radius: 50%; background: #ffe066; animation: ffly linear infinite; z-index: 0; }
+.firefly { position:fixed; border-radius:50%; background:#ffe066; animation:ffly linear infinite; z-index:0; }
 @keyframes ffly { 0%,100%{opacity:0} 40%,60%{opacity:1} }
 
-/* Vine border */
-body::before { content:''; position:fixed; top:0;left:0;right:0;bottom:0; border:8px solid transparent; border-image:none; pointer-events:none; z-index:0; }
-
-/* Screens */
-.screen { display:none;width:100vw;height:100vh;position:absolute;top:0;left:0;flex-direction:column;align-items:center;justify-content:center;z-index:1;padding-top:58px;padding-bottom:20px; }
+.screen { display:none; width:100vw; height:100vh; position:absolute; top:0; left:0; flex-direction:column; align-items:center; justify-content:center; z-index:1; padding-top:58px; padding-bottom:20px; }
 .screen.active { display:flex; }
 
-/* Score bar */
-#scorebar { position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,0.88);border-bottom:3px solid #39d353;padding:7px 16px;display:none;align-items:center;gap:14px;z-index:50; }
-.sbl { display:inline-block;width:22px;height:22px;border:2px solid rgba(255,255,255,0.4);border-bottom:3px solid rgba(0,0,0,0.5);vertical-align:middle; }
+#scorebar { position:fixed; top:0; left:0; right:0; background:rgba(0,0,0,0.88); border-bottom:3px solid #39d353; padding:7px 16px; display:none; align-items:center; gap:14px; z-index:50; }
+.sbl { display:inline-block; width:22px; height:22px; border:2px solid rgba(255,255,255,0.4); border-bottom:3px solid rgba(0,0,0,0.5); vertical-align:middle; }
 .sb-r { background:#ff4f4f; }
 .sb-t { background:#ff9f0a; }
 .sb-a { background:#bf5af2; }
-.sb-n { color:#fff;font-weight:bold;font-size:15px;vertical-align:middle; }
-#prog-bar { width:120px;height:14px;background:#111;border:2px solid #39d353; }
-#prog-fill { height:100%;background:#39d353;transition:width 0.4s; }
+.sb-n { color:#fff; font-weight:bold; font-size:15px; vertical-align:middle; }
+#prog-bar { width:120px; height:14px; background:#111; border:2px solid #39d353; }
+#prog-fill { height:100%; background:#39d353; transition:width 0.4s; }
 
-/* Glow text */
-.glow { color:#90ff60;text-shadow:0 0 8px #90ff60,0 0 18px #90ff6055;font-weight:bold;letter-spacing:3px;font-family:'Courier New',monospace; }
-
-/* Dino bounce on intro */
-.dino-big { font-size:80px;animation:dinobounce 1.8s ease-in-out infinite;display:inline-block; }
+.glow { color:#90ff60; text-shadow:0 0 8px #90ff60, 0 0 18px #90ff6055; font-weight:bold; letter-spacing:2px; font-family:'Courier New',monospace; }
+.dino-big { font-size:80px; animation:dinobounce 1.8s ease-in-out infinite; display:inline-block; }
 @keyframes dinobounce { 0%,100%{transform:translateY(0) rotate(-3deg)} 50%{transform:translateY(-14px) rotate(3deg)} }
 
-/* Jungle button */
-.j-btn { background:#0d2b0d;border:2px solid #39d353;box-shadow:0 0 12px #39d35355;color:#90ff60;font-family:'Courier New',monospace;font-size:20px;font-weight:bold;padding:14px 32px;cursor:pointer;letter-spacing:2px;transition:box-shadow 0.2s,transform 0.1s; }
+.j-btn { background:#0d2b0d; border:2px solid #39d353; box-shadow:0 0 12px #39d35355; color:#90ff60; font-family:'Courier New',monospace; font-size:20px; font-weight:bold; padding:14px 32px; cursor:pointer; letter-spacing:2px; transition:box-shadow 0.2s,transform 0.1s; }
 .j-btn:active { transform:scale(0.95); }
-.j-btn.dim { border-color:#aef;color:#aef;box-shadow:none;font-size:14px;padding:10px 22px; }
+.j-btn.dim { border-color:#aef; color:#aef; box-shadow:none; font-size:14px; padding:10px 22px; }
 
-/* Badge */
-.badge { background:rgba(0,0,0,0.7);border:2px solid #39d353;color:#90ff60;font-weight:bold;font-size:13px;letter-spacing:3px;padding:4px 14px;margin-bottom:8px; }
+.badge { background:rgba(0,0,0,0.7); border:2px solid #39d353; color:#90ff60; font-weight:bold; font-size:13px; letter-spacing:3px; padding:4px 14px; margin-bottom:8px; }
 
-/* Egg */
-.egg-row { display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:10px 0; }
-.egg {
-    width:72px;height:88px;
-    background:radial-gradient(ellipse at 38% 35%, #1a4a1a, #0a240a);
-    border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;
-    border:3px solid #39d353;
-    box-shadow:0 0 10px #39d35340;
-    display:flex;align-items:center;justify-content:center;
-    font-size:28px;font-weight:bold;color:transparent;
-    user-select:none;transition:transform 0.15s;cursor:default;
-}
-.egg.cracked { background:radial-gradient(ellipse at 38% 35%, #39d353, #1a7a30);color:#061006;box-shadow:0 0 18px #39d353;animation:eggPop 0.35s ease-out; }
-.egg.pop-in  { animation:eggPop 0.35s ease-out; }
-@keyframes eggPop { 0%{transform:scale(1) rotate(0)} 30%{transform:scale(1.3) rotate(-10deg)} 60%{transform:scale(0.9) rotate(7deg)} 100%{transform:scale(1) rotate(0)} }
+/* Large number display */
+.num-display { background:rgba(57,211,83,0.06); border:3px solid #39d353; box-shadow:0 0 20px #39d35330; padding:18px 32px; margin:10px 0; text-align:center; min-width:220px; }
+.num-big { color:#90ff60; font-size:56px; font-weight:bold; letter-spacing:6px; text-shadow:0 0 12px #90ff60; font-family:'Courier New',monospace; min-height:72px; }
+.num-sub { color:#adf; font-size:13px; letter-spacing:2px; margin-top:4px; }
 
-/* Number cards (for sequence / answer choices) */
-.choices { display:flex;gap:12px;flex-wrap:wrap;justify-content:center;max-width:460px;margin:10px 0; }
-.choice-btn { background:#0d1f0d;border:2px solid #39d353;box-shadow:0 0 6px #39d35325;color:#90ff60;font-family:'Courier New',monospace;font-size:30px;font-weight:bold;padding:14px 20px;cursor:pointer;min-width:80px;text-align:center;letter-spacing:2px;user-select:none; }
+/* Equation display */
+.eq-display { background:rgba(57,211,83,0.06); border:3px solid #39d353; padding:16px 28px; margin:10px 0; text-align:center; }
+.eq-row { display:flex; align-items:center; justify-content:center; gap:12px; }
+.eq-num { color:#90ff60; font-size:44px; font-weight:bold; font-family:'Courier New',monospace; text-shadow:0 0 10px #90ff60; }
+.eq-op { color:#ffd700; font-size:38px; font-weight:bold; text-shadow:0 0 8px #ffd700; }
+.eq-q { color:#ff9f0a; font-size:44px; font-weight:bold; text-shadow:0 0 10px #ff9f0a; animation:pulse 1.2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+/* Sequence display */
+.seq-row { display:flex; gap:8px; justify-content:center; align-items:center; margin:12px 0; flex-wrap:wrap; }
+.seq-box { width:72px; height:72px; border:3px solid #39d353; background:#0a1f0a; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:bold; color:#90ff60; font-family:'Courier New',monospace; }
+.seq-box.blank { background:radial-gradient(ellipse at 38% 35%, #1a4a1a, #0a240a); border-color:#ffd700; box-shadow:0 0 12px #ffd70060; color:#ffd700; animation:pulse 1s infinite; }
+.seq-arrow { color:#39d353; font-size:20px; }
+.skip-label { color:#adf; font-size:12px; letter-spacing:2px; margin-top:4px; }
+
+/* Choice buttons — two sizes */
+.choices { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; max-width:500px; margin:10px 0; }
+.choice-btn { background:#0d1f0d; border:2px solid #39d353; box-shadow:0 0 6px #39d35325; color:#90ff60; font-family:'Courier New',monospace; font-size:26px; font-weight:bold; padding:12px 16px; cursor:pointer; min-width:90px; text-align:center; user-select:none; }
 .choice-btn:active:not(.correct):not(.wrong) { transform:scale(0.95); }
-.choice-btn.correct { background:#002800;border-color:#39d353;box-shadow:0 0 14px #39d353;color:#39d353; }
-.choice-btn.wrong   { background:#280000;border-color:#ff4444;box-shadow:0 0 14px #ff4444;color:#ff4444; }
+.choice-btn.correct { background:#002800; border-color:#39d353; box-shadow:0 0 14px #39d353; color:#39d353; }
+.choice-btn.wrong   { background:#280000; border-color:#ff4444; box-shadow:0 0 14px #ff4444; color:#ff4444; }
 
-/* Sequence boxes */
-.seq-row { display:flex;gap:10px;justify-content:center;align-items:center;margin:12px 0; }
-.seq-box { width:66px;height:66px;border:3px solid #39d353;background:#0a1f0a;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:bold;color:#90ff60;font-family:'Courier New',monospace; }
-.seq-box.blank { background:radial-gradient(ellipse at 38% 35%, #1a4a1a, #0a240a);border-color:#ffd700;box-shadow:0 0 12px #ffd70060;color:#ffd700;animation:pulse 1s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
-.seq-arrow { color:#39d353;font-size:22px; }
+.replay-btn { background:rgba(57,211,83,0.1); border:1px solid #39d353; color:#39d353; font-family:'Courier New',monospace; font-size:13px; padding:6px 18px; cursor:pointer; margin:4px; }
 
-/* Plus/equals display */
-.math-row { display:flex;gap:14px;align-items:center;justify-content:center;margin:10px 0; }
-.math-sym { color:#ffd700;font-size:34px;font-weight:bold;text-shadow:0 0 8px #ffd700; }
-.math-group { display:flex;flex-direction:column;align-items:center;gap:6px; }
-.math-label { color:#adf;font-size:13px;letter-spacing:1px; }
-
-/* Feedback */
-.feedback-box { min-height:54px;display:flex;align-items:center;justify-content:center;margin:4px 0; }
-.pop { animation:popIn 0.45s ease-out both;display:inline-block; }
+.feedback-box { min-height:54px; display:flex; align-items:center; justify-content:center; margin:4px 0; }
+.pop { animation:popIn 0.45s ease-out both; display:inline-block; }
 @keyframes popIn { 0%{transform:scale(0) rotate(-15deg);opacity:0} 70%{transform:scale(1.2) rotate(3deg);opacity:1} 100%{transform:scale(1) rotate(0);opacity:1} }
+.instruct { font-size:13px; text-align:center; max-width:380px; margin:5px 0; color:#adf; }
 
-.instruct { font-size:14px;text-align:center;max-width:360px;margin:5px 0;color:#adf; }
-
-/* Reward stars */
-.stars-row { display:flex;gap:8px;justify-content:center;margin:8px 0; }
-.star-j { font-size:46px;display:inline-block;animation:popIn 0.4s ease-out both; }
-.big-block { display:inline-block;width:44px;height:44px;border:2px solid rgba(255,255,255,0.4);border-bottom:4px solid rgba(0,0,0,0.4);vertical-align:middle; }
+.stars-row { display:flex; gap:8px; justify-content:center; margin:8px 0; }
+.star-j { font-size:46px; display:inline-block; animation:popIn 0.4s ease-out both; }
+.big-block { display:inline-block; width:44px; height:44px; border:2px solid rgba(255,255,255,0.4); border-bottom:4px solid rgba(0,0,0,0.4); vertical-align:middle; }
 
 @media (max-width:480px) {
-    .egg { width:58px;height:72px;font-size:22px; }
-    .choice-btn { font-size:24px;padding:11px 14px;min-width:68px; }
-    .seq-box { width:54px;height:54px;font-size:26px; }
+    .eq-num { font-size:32px; }
+    .eq-q   { font-size:32px; }
+    .num-big { font-size:40px; }
+    .seq-box { width:56px; height:56px; font-size:17px; }
+    .choice-btn { font-size:20px; padding:10px 12px; min-width:76px; }
 }
 </style>
 </head>
 <body>
 
-<!-- Fireflies -->
 <script>
 for(let i=0;i<18;i++){
-    const f=document.createElement('div');
-    f.className='firefly';
+    const f=document.createElement('div'); f.className='firefly';
     const sz=Math.random()*3+1.5;
     f.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*90}%;left:${Math.random()*100}%;animation-duration:${(Math.random()*2.5+1.5).toFixed(1)}s;animation-delay:${(Math.random()*3).toFixed(1)}s;filter:blur(${sz>3?1:0}px)`;
     document.body.appendChild(f);
 }
 </script>
 
-<!-- Score bar -->
 <div id="scorebar">
     <span class="sbl sb-r"></span><span class="sb-n" id="sc-r">0</span>
     <span class="sbl sb-t" style="margin-left:6px"></span><span class="sb-n" id="sc-t">0</span>
@@ -136,19 +113,22 @@ for(let i=0;i<18;i++){
     <div class="dino-big">🦕</div>
     <div class="glow" style="font-size:26px;margin:14px 0 6px;text-align:center">NUMBER<br>JUNGLE</div>
     <div style="color:#adf;font-size:14px;letter-spacing:1px;text-align:center;margin-bottom:26px">
-        Count the eggs!<br>Add them up!<br>Find the missing number!
+        Hear &amp; find numbers!<br>Add to 1000!<br>Skip count like a pro!
     </div>
     <button class="j-btn" onclick="startSession()" style="font-size:24px;padding:18px 50px">▶ PLAY</button>
     <button class="j-btn dim" onclick="window.location.href='index.html'" style="margin-top:14px">← Phonics Egg Mine</button>
     <button class="j-btn dim" onclick="window.location.href='game2.html'" style="margin-top:10px">🛸 Alien Word Decoder</button>
 </div>
 
-<!-- GAME A: HATCH & COUNT -->
+<!-- GAME A: NUMBER CRACK -->
 <div class="screen" id="s-ga">
-    <div class="badge">🥚 HATCH &amp; COUNT</div>
-    <div class="glow instruct" style="font-size:13px">Count the eggs as they hatch!</div>
-    <div class="egg-row" id="ga-eggs"></div>
-    <div class="glow" id="ga-counter" style="font-size:28px;min-height:44px;margin:4px 0"></div>
+    <div class="badge">🔊 NUMBER CRACK</div>
+    <div class="instruct">Listen and tap the number you hear!</div>
+    <div class="num-display" style="margin:14px 0">
+        <div style="font-size:52px;margin-bottom:6px">🔊</div>
+        <div style="color:#adf;font-size:12px;letter-spacing:2px">TAP TO HEAR AGAIN</div>
+    </div>
+    <button class="replay-btn" id="ga-replay" onclick="replayNum()">🔊 Hear Again</button>
     <div class="choices" id="ga-choices"></div>
     <div class="feedback-box" id="ga-fb"></div>
 </div>
@@ -156,16 +136,16 @@ for(let i=0;i<18;i++){
 <!-- GAME B: JUNGLE ADD -->
 <div class="screen" id="s-gb">
     <div class="badge">➕ JUNGLE ADD</div>
-    <div class="glow instruct" id="gb-inst" style="font-size:13px;max-width:340px;text-align:center"></div>
-    <div class="math-row" id="gb-math"></div>
+    <div class="instruct" id="gb-inst"></div>
+    <div class="eq-display" id="gb-eq"></div>
     <div class="choices" id="gb-choices"></div>
     <div class="feedback-box" id="gb-fb"></div>
 </div>
 
-<!-- GAME C: MISSING NUMBER -->
+<!-- GAME C: SKIP COUNT -->
 <div class="screen" id="s-gc">
-    <div class="badge">❓ MISSING NUMBER</div>
-    <div class="glow instruct" style="font-size:13px">What number is missing?</div>
+    <div class="badge">🔢 SKIP COUNT</div>
+    <div class="instruct" id="gc-inst"></div>
     <div class="seq-row" id="gc-seq"></div>
     <div class="choices" id="gc-choices"></div>
     <div class="feedback-box" id="gc-fb"></div>
@@ -196,33 +176,125 @@ for(let i=0;i<18;i++){
 </div>
 
 <script>
-// ─── COUNT PROBLEMS ───────────────────────────────────────────────────────────
-const COUNTS = [1,2,3,4,5,6,1,2,4,5,3,6];
-
-// ─── ADD PROBLEMS ─────────────────────────────────────────────────────────────
-const ADDS = [
-    { a:1, b:1, ans:2 },
-    { a:1, b:2, ans:3 },
-    { a:2, b:2, ans:4 },
-    { a:1, b:3, ans:4 },
-    { a:2, b:3, ans:5 },
-    { a:3, b:3, ans:6 },
-    { a:1, b:4, ans:5 },
-    { a:2, b:4, ans:6 },
-    { a:1, b:5, ans:6 },
+// ─── NUMBER POOL (1–1000) ─────────────────────────────────────────────────────
+const NUMBERS = [
+    // Teens (tricky)
+    11,12,13,14,15,16,17,18,19,
+    // Decades
+    20,30,40,50,60,70,80,90,
+    // Hundreds
+    100,200,300,400,500,600,700,800,900,1000,
+    // Hundreds + tens
+    110,120,130,150,175,210,225,250,275,
+    305,320,350,415,430,450,475,
+    505,525,550,575,605,620,650,675,
+    710,725,750,775,810,825,850,875,
+    910,925,950,975,
+    // Off-hundreds (tricky digit combos)
+    101,201,301,401,501,601,701,801,901,
+    111,222,333,444,555,666,777,888,999,
+    123,234,345,456,567,678,789,
+    321,432,543,654,765,876,987,
+    142,263,374,485,596,617,728,839,
+    248,369,471,582,693,
+    // Powers-of-ten crossings
+    98,99,100,101,199,200,201,
+    298,299,300,398,399,400,
+    499,500,501,599,600,601,
+    699,700,701,799,800,801,
+    899,900,901,998,999,1000,
 ];
 
-// ─── SEQUENCE PROBLEMS ────────────────────────────────────────────────────────
+// ─── ADD POOL (to 1000) ───────────────────────────────────────────────────────
+const ADDS = [
+    // Single + single
+    { a:7,   b:8,   ans:15  }, { a:9,   b:6,   ans:15  }, { a:8,   b:9,   ans:17  },
+    { a:6,   b:7,   ans:13  }, { a:9,   b:9,   ans:18  },
+    // Tens + tens
+    { a:30,  b:40,  ans:70  }, { a:60,  b:30,  ans:90  }, { a:50,  b:50,  ans:100 },
+    { a:70,  b:30,  ans:100 }, { a:40,  b:60,  ans:100 }, { a:80,  b:20,  ans:100 },
+    // 2-digit + 1-digit
+    { a:23,  b:6,   ans:29  }, { a:41,  b:8,   ans:49  }, { a:55,  b:4,   ans:59  },
+    { a:72,  b:8,   ans:80  }, { a:94,  b:6,   ans:100 }, { a:86,  b:4,   ans:90  },
+    // 2-digit + 2-digit
+    { a:25,  b:25,  ans:50  }, { a:35,  b:15,  ans:50  }, { a:45,  b:55,  ans:100 },
+    { a:75,  b:25,  ans:100 }, { a:64,  b:36,  ans:100 }, { a:48,  b:52,  ans:100 },
+    { a:37,  b:43,  ans:80  }, { a:29,  b:31,  ans:60  },
+    // Hundreds
+    { a:100, b:100, ans:200 }, { a:200, b:200, ans:400 }, { a:300, b:300, ans:600 },
+    { a:100, b:200, ans:300 }, { a:200, b:300, ans:500 }, { a:300, b:400, ans:700 },
+    { a:400, b:400, ans:800 }, { a:100, b:400, ans:500 }, { a:200, b:500, ans:700 },
+    { a:300, b:600, ans:900 }, { a:100, b:700, ans:800 }, { a:400, b:500, ans:900 },
+    // Hundreds + tens
+    { a:100, b:50,  ans:150 }, { a:200, b:50,  ans:250 }, { a:300, b:50,  ans:350 },
+    { a:400, b:50,  ans:450 }, { a:500, b:50,  ans:550 }, { a:600, b:50,  ans:650 },
+    { a:700, b:50,  ans:750 }, { a:800, b:50,  ans:850 }, { a:900, b:50,  ans:950 },
+    { a:100, b:25,  ans:125 }, { a:200, b:75,  ans:275 }, { a:300, b:25,  ans:325 },
+    { a:450, b:50,  ans:500 }, { a:475, b:25,  ans:500 }, { a:650, b:50,  ans:700 },
+    // Making 500
+    { a:250, b:250, ans:500 }, { a:125, b:375, ans:500 }, { a:350, b:150, ans:500 },
+    // Making 1000
+    { a:500, b:500, ans:1000 }, { a:750, b:250, ans:1000 }, { a:600, b:400, ans:1000 },
+    { a:800, b:200, ans:1000 }, { a:900, b:100, ans:1000 }, { a:850, b:150, ans:1000 },
+    // Mixed large
+    { a:350, b:150, ans:500 }, { a:450, b:150, ans:600 }, { a:550, b:150, ans:700 },
+    { a:375, b:125, ans:500 }, { a:625, b:375, ans:1000 }, { a:725, b:275, ans:1000 },
+    { a:150, b:150, ans:300 }, { a:250, b:150, ans:400 }, { a:350, b:350, ans:700 },
+];
+
+// ─── SKIP COUNT SEQUENCES ─────────────────────────────────────────────────────
 const SEQS = [
-    { seq:[null,2,3], ans:1 },
-    { seq:[1,null,3], ans:2 },
-    { seq:[2,3,null], ans:4 },
-    { seq:[null,4,5], ans:3 },
-    { seq:[3,null,5], ans:4 },
-    { seq:[4,5,null], ans:6 },
-    { seq:[null,3,4], ans:2 },
-    { seq:[2,null,4], ans:3 },
-    { seq:[1,2,null], ans:3 },
+    // — By 2 —
+    { seq:[2,4,null],      ans:6,    by:2  },
+    { seq:[null,6,8],      ans:4,    by:2  },
+    { seq:[8,null,12],     ans:10,   by:2  },
+    { seq:[14,16,null],    ans:18,   by:2  },
+    { seq:[null,20,22],    ans:18,   by:2  },
+    { seq:[96,98,null],    ans:100,  by:2  },
+    { seq:[null,100,102],  ans:98,   by:2  },
+    { seq:[198,null,202],  ans:200,  by:2  },
+    { seq:[498,500,null],  ans:502,  by:2  },
+    { seq:[null,998,1000], ans:996,  by:2  },
+    // — By 5 —
+    { seq:[5,10,null],     ans:15,   by:5  },
+    { seq:[null,20,25],    ans:15,   by:5  },
+    { seq:[30,null,40],    ans:35,   by:5  },
+    { seq:[45,50,null],    ans:55,   by:5  },
+    { seq:[95,100,null],   ans:105,  by:5  },
+    { seq:[null,200,205],  ans:195,  by:5  },
+    { seq:[495,500,null],  ans:505,  by:5  },
+    { seq:[null,995,1000], ans:990,  by:5  },
+    // — By 10 —
+    { seq:[10,20,null],    ans:30,   by:10 },
+    { seq:[null,40,50],    ans:30,   by:10 },
+    { seq:[60,null,80],    ans:70,   by:10 },
+    { seq:[80,90,null],    ans:100,  by:10 },
+    { seq:[null,110,120],  ans:100,  by:10 },
+    { seq:[190,null,210],  ans:200,  by:10 },
+    { seq:[490,500,null],  ans:510,  by:10 },
+    { seq:[null,990,1000], ans:980,  by:10 },
+    // — By 25 —
+    { seq:[25,50,null],    ans:75,   by:25 },
+    { seq:[null,75,100],   ans:50,   by:25 },
+    { seq:[100,null,150],  ans:125,  by:25 },
+    { seq:[175,200,null],  ans:225,  by:25 },
+    { seq:[null,500,525],  ans:475,  by:25 },
+    { seq:[750,775,null],  ans:800,  by:25 },
+    { seq:[null,950,975],  ans:925,  by:25 },
+    // — By 50 —
+    { seq:[50,100,null],   ans:150,  by:50 },
+    { seq:[null,200,250],  ans:150,  by:50 },
+    { seq:[300,null,400],  ans:350,  by:50 },
+    { seq:[450,500,null],  ans:550,  by:50 },
+    { seq:[null,800,850],  ans:750,  by:50 },
+    { seq:[900,950,null],  ans:1000, by:50 },
+    // — By 100 —
+    { seq:[100,200,null],  ans:300,  by:100 },
+    { seq:[null,300,400],  ans:200,  by:100 },
+    { seq:[400,null,600],  ans:500,  by:100 },
+    { seq:[600,700,null],  ans:800,  by:100 },
+    { seq:[null,800,900],  ans:700,  by:100 },
+    { seq:[800,900,null],  ans:1000, by:100 },
 ];
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
@@ -233,10 +305,11 @@ function resetState() {
         rubies:0, topaz:0, amethyst:0,
         round:0, totalRounds:9, correct:0, wrongCount:0,
         gameOrder:[0,1,2, 0,1,2, 0,1,2],
-        counts: shuffle([...COUNTS]).slice(0,3),
+        nums:   shuffle([...NUMBERS]).slice(0,3),
         adds:   shuffle([...ADDS]).slice(0,3),
         seqs:   shuffle([...SEQS]).slice(0,3),
-        ci:0, ai:0, si:0,
+        ni:0, ai:0, si:0,
+        curNum:0,
     };
 }
 
@@ -265,19 +338,11 @@ function shuffle(a) {
     for(let i=r.length-1;i>0;i--){const j=0|Math.random()*(i+1);[r[i],r[j]]=[r[j],r[i]];}
     return r;
 }
-
-function nearbyChoices(ans, min, max, count) {
-    const pool=[];
-    for(let n=min;n<=max;n++) if(n!==ans) pool.push(n);
-    return shuffle(pool).slice(0,count);
-}
-
 function show(id) {
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
-    document.getElementById('scorebar').style.display = id==='s-intro' ? 'none' : 'flex';
+    document.getElementById('scorebar').style.display = id==='s-intro'?'none':'flex';
 }
-
 function hud() {
     document.getElementById('sc-r').textContent=S.rubies;
     document.getElementById('sc-t').textContent=S.topaz;
@@ -286,106 +351,114 @@ function hud() {
     document.getElementById('prog-fill').style.width=(S.round/S.totalRounds*100)+'%';
 }
 
+// Distractor generators
+function numDistractors(n, count) {
+    const s=new Set();
+    const str=n.toString();
+    // Digit swaps
+    for(let i=0;i<str.length;i++) for(let j=i+1;j<str.length;j++){
+        const a=str.split(''); [a[i],a[j]]=[a[j],a[i]];
+        const v=parseInt(a.join(''));
+        if(v!==n && v>0 && v<=1000 && a[0]!=='0') s.add(v);
+    }
+    // Change one digit
+    for(let i=0;i<str.length;i++) for(const d of[-1,1,-2,2]){
+        const a=str.split('').map(Number); a[i]+=d;
+        if(a[i]<0||a[i]>9||i===0&&a[i]===0) continue;
+        const v=parseInt(a.join(''));
+        if(v!==n && v>0 && v<=1000) s.add(v);
+    }
+    // Nearby at appropriate step
+    const step=n<=30?1:n<=100?10:n<=500?50:100;
+    for(let d=1;s.size<count*3&&d<=20;d++){
+        [n+d*step, n-d*step].forEach(v=>{ if(v!==n&&v>0&&v<=1000) s.add(v); });
+    }
+    return shuffle([...s]).slice(0,count);
+}
+
+function addDistractors(ans, count) {
+    const s=new Set();
+    const steps=ans<=20?[1,2,3]:ans<=100?[5,10,15]:ans<=500?[25,50,100]:[50,100,200];
+    steps.forEach(step=>{
+        for(const d of[-1,1,-2,2,3,-3]){
+            const v=ans+d*step;
+            if(v!==ans && v>0) s.add(v);
+        }
+    });
+    return shuffle([...s]).slice(0,count);
+}
+
+function seqDistractors(ans, by, count) {
+    const s=new Set();
+    for(let d=-4;d<=4;d++){ if(d!==0){ const v=ans+d*by; if(v>0&&v<=1010) s.add(v); } }
+    for(let d=1;d<=3;d++){ [ans+d,ans-d].forEach(v=>{ if(v>0&&v!==ans) s.add(v); }); }
+    return shuffle([...s].filter(v=>v!==ans&&v>0)).slice(0,count);
+}
+
 // ─── SESSION ──────────────────────────────────────────────────────────────────
 function startSession() { resetState(); hud(); nextRound(); }
-
 function nextRound() {
     S.round++; hud();
     const g=S.gameOrder[S.round-1];
-    if(g===0) gameA();
-    else if(g===1) gameB();
-    else gameC();
+    if(g===0) gameA(); else if(g===1) gameB(); else gameC();
 }
-
 function advance(ok) {
     if(ok) S.correct++;
     if(S.round>=S.totalRounds) setTimeout(reward,1300);
     else setTimeout(nextRound,1300);
 }
 
-// ─── GAME A: HATCH & COUNT ────────────────────────────────────────────────────
+// ─── GAME A: NUMBER CRACK ─────────────────────────────────────────────────────
 function gameA() {
     S.wrongCount=0;
-    const n=S.counts[S.ci % S.counts.length]; S.ci++;
+    const n=S.nums[S.ni % S.nums.length]; S.ni++;
+    S.curNum=n;
     show('s-ga');
     document.getElementById('ga-fb').innerHTML='';
-    document.getElementById('ga-counter').textContent='';
-    document.getElementById('ga-choices').innerHTML='';
 
-    // Build N eggs, hidden to start
-    const row=document.getElementById('ga-eggs');
-    row.innerHTML='';
-    for(let i=0;i<n;i++){
-        const e=document.createElement('div');
-        e.className='egg';
-        e.id='ea-'+i;
-        e.style.opacity='0';
-        row.appendChild(e);
-    }
-
-    say('Count the eggs as they hatch!', 0.85, 1.1, ()=>{
-        hatchEggs(n, 0, ()=>{
-            // All hatched — show number choices
-            const wrongs=nearbyChoices(n,1,7,3);
-            const opts=shuffle([n,...wrongs]);
-            say('How many eggs did you see?', 0.85, 1.1);
-            const cd=document.getElementById('ga-choices');
-            cd.innerHTML='';
-            opts.forEach(o=>{
-                const b=document.createElement('button');
-                b.className='choice-btn';
-                b.textContent=o;
-                b.onclick=()=>pickCount(o, n);
-                cd.appendChild(b);
-            });
-        });
+    const wrongs=numDistractors(n,3);
+    const opts=shuffle([n,...wrongs]);
+    const cd=document.getElementById('ga-choices');
+    cd.innerHTML='';
+    opts.forEach(o=>{
+        const b=document.createElement('button');
+        b.className='choice-btn';
+        b.textContent=o.toLocaleString();
+        b.onclick=()=>pickNum(o,n);
+        cd.appendChild(b);
     });
+
+    setTimeout(()=>say('Listen! Tap the number you hear!', 0.85, 1.1, ()=>setTimeout(()=>say(n+'', 0.78, 1.1), 400)), 300);
 }
 
-function hatchEggs(total, idx, done) {
-    if(idx>=total) { setTimeout(done,400); return; }
-    const e=document.getElementById('ea-'+idx);
-    if(e){
-        e.style.opacity='1';
-        e.classList.add('cracked','pop-in');
-        e.textContent=idx+1;
-        document.getElementById('ga-counter').textContent=(idx+1)+'';
-        say(''+(idx+1), 0.9, 1.15);
-    }
-    setTimeout(()=>hatchEggs(total, idx+1, done), 900);
-}
+function replayNum() { if(S.curNum) say(S.curNum+'', 0.78, 1.1); }
 
-function pickCount(choice, correct) {
+function pickNum(choice, correct) {
     const ok=choice===correct;
     if(ok){
         document.querySelectorAll('#ga-choices .choice-btn').forEach(b=>b.onclick=null);
-        document.querySelectorAll('#ga-choices .choice-btn').forEach(b=>{
-            if(+b.textContent===correct) b.classList.add('correct');
-        });
-        say(correct+'! That\'s right! Ruby collected!', 0.85, 1.15);
+        document.querySelectorAll('#ga-choices .choice-btn').forEach(b=>{ if(+b.textContent.replace(/,/g,'')===correct) b.classList.add('correct'); });
+        say(correct+'! Ruby collected!', 0.85, 1.15);
         document.getElementById('ga-fb').innerHTML='<span class="pop" style="font-size:46px;color:#ff4f4f">🔴 +1</span>';
         S.rubies++; hud(); advance(true);
     } else {
         S.wrongCount++;
-        document.querySelectorAll('#ga-choices .choice-btn').forEach(b=>{
-            if(+b.textContent===choice) b.classList.add('wrong');
-        });
+        document.querySelectorAll('#ga-choices .choice-btn').forEach(b=>{ if(+b.textContent.replace(/,/g,'')===choice) b.classList.add('wrong'); });
         if(S.wrongCount>=2){
             document.querySelectorAll('#ga-choices .choice-btn').forEach(b=>b.onclick=null);
-            document.querySelectorAll('#ga-choices .choice-btn').forEach(b=>{
-                if(+b.textContent===correct) b.classList.add('correct');
-            });
-            showDino('There are '+correct+' eggs!', 2000, ()=>{
+            document.querySelectorAll('#ga-choices .choice-btn').forEach(b=>{ if(+b.textContent.replace(/,/g,'')===correct) b.classList.add('correct'); });
+            showDino('The number is '+correct+'!', 2000, ()=>{
                 document.getElementById('ga-fb').innerHTML='<span class="pop" style="font-size:36px;color:#adf">🦕 Now you know!</span>';
                 advance(false);
             });
         } else {
-            say('Try again! Count the eggs!', 0.85, 1.0);
+            say('Try again! Listen carefully!', 0.85, 1.0);
             document.getElementById('ga-fb').innerHTML='<span class="pop" style="font-size:32px;color:#adf">🦕 Try again!</span>';
             setTimeout(()=>{
+                say(correct+'', 0.78, 1.1);
                 document.querySelectorAll('#ga-choices .choice-btn').forEach(b=>{
                     b.classList.remove('wrong');
-                    b.onclick=()=>pickCount(+b.textContent, correct);
+                    b.onclick=()=>pickNum(+b.textContent.replace(/,/g,''), correct);
                 });
                 document.getElementById('ga-fb').innerHTML='';
             },1200);
@@ -399,94 +472,57 @@ function gameB() {
     const prob=S.adds[S.ai % S.adds.length]; S.ai++;
     show('s-gb');
     document.getElementById('gb-fb').innerHTML='';
+    document.getElementById('gb-inst').textContent='What does '+prob.a+' plus '+prob.b+' equal?';
 
-    document.getElementById('gb-inst').textContent=prob.a+' plus '+prob.b+' equals what?';
+    const eq=document.getElementById('gb-eq');
+    eq.innerHTML=`<div class="eq-row">
+        <span class="eq-num">${prob.a.toLocaleString()}</span>
+        <span class="eq-op">+</span>
+        <span class="eq-num">${prob.b.toLocaleString()}</span>
+        <span class="eq-op">=</span>
+        <span class="eq-q">?</span>
+    </div>`;
 
-    // Build visual egg groups
-    const mr=document.getElementById('gb-math');
-    mr.innerHTML='';
-
-    function eggGroup(n, label) {
-        const g=document.createElement('div');
-        g.className='math-group';
-        const er=document.createElement('div');
-        er.className='egg-row';
-        er.style.flexWrap='wrap';
-        er.style.maxWidth='160px';
-        for(let i=0;i<n;i++){
-            const e=document.createElement('div');
-            e.className='egg cracked';
-            e.textContent='🥚';
-            e.style.fontSize='20px';
-            e.style.width='44px';
-            e.style.height='54px';
-            er.appendChild(e);
-        }
-        const lbl=document.createElement('div');
-        lbl.className='math-label';
-        lbl.textContent=label;
-        g.appendChild(er); g.appendChild(lbl);
-        return g;
-    }
-
-    mr.appendChild(eggGroup(prob.a, prob.a+''));
-    const plus=document.createElement('div');
-    plus.className='math-sym'; plus.textContent='+';
-    mr.appendChild(plus);
-    mr.appendChild(eggGroup(prob.b, prob.b+''));
-    const eq=document.createElement('div');
-    eq.className='math-sym'; eq.textContent='=';
-    mr.appendChild(eq);
-    const q=document.createElement('div');
-    q.className='math-sym'; q.textContent='?';
-    mr.appendChild(q);
-
-    const wrongs=nearbyChoices(prob.ans, 1, 8, 3);
+    const wrongs=addDistractors(prob.ans,3);
     const opts=shuffle([prob.ans,...wrongs]);
     const cd=document.getElementById('gb-choices');
     cd.innerHTML='';
     opts.forEach(o=>{
         const b=document.createElement('button');
         b.className='choice-btn';
-        b.textContent=o;
-        b.onclick=()=>pickAdd(o, prob);
+        b.textContent=o.toLocaleString();
+        b.onclick=()=>pickAdd(o,prob);
         cd.appendChild(b);
     });
 
-    setTimeout(()=>say(prob.a+' plus '+prob.b+' equals how much? Count all the eggs!', 0.82, 1.1), 400);
+    setTimeout(()=>say('What is '+prob.a+' plus '+prob.b+'?', 0.82, 1.1), 400);
 }
 
 function pickAdd(choice, prob) {
     const ok=choice===prob.ans;
     if(ok){
         document.querySelectorAll('#gb-choices .choice-btn').forEach(b=>b.onclick=null);
-        document.querySelectorAll('#gb-choices .choice-btn').forEach(b=>{
-            if(+b.textContent===prob.ans) b.classList.add('correct');
-        });
+        document.querySelectorAll('#gb-choices .choice-btn').forEach(b=>{ if(+b.textContent.replace(/,/g,'')===prob.ans) b.classList.add('correct'); });
         say(prob.a+' plus '+prob.b+' equals '+prob.ans+'! Topaz collected!', 0.85, 1.1);
         document.getElementById('gb-fb').innerHTML='<span class="pop" style="font-size:46px;color:#ff9f0a">🟠 +1</span>';
         S.topaz++; hud(); advance(true);
     } else {
         S.wrongCount++;
-        document.querySelectorAll('#gb-choices .choice-btn').forEach(b=>{
-            if(+b.textContent===choice) b.classList.add('wrong');
-        });
+        document.querySelectorAll('#gb-choices .choice-btn').forEach(b=>{ if(+b.textContent.replace(/,/g,'')===choice) b.classList.add('wrong'); });
         if(S.wrongCount>=2){
             document.querySelectorAll('#gb-choices .choice-btn').forEach(b=>b.onclick=null);
-            document.querySelectorAll('#gb-choices .choice-btn').forEach(b=>{
-                if(+b.textContent===prob.ans) b.classList.add('correct');
-            });
+            document.querySelectorAll('#gb-choices .choice-btn').forEach(b=>{ if(+b.textContent.replace(/,/g,'')===prob.ans) b.classList.add('correct'); });
             showDino(prob.a+' plus '+prob.b+' equals '+prob.ans+'!', 2500, ()=>{
                 document.getElementById('gb-fb').innerHTML='<span class="pop" style="font-size:36px;color:#adf">🦕 Now you know!</span>';
                 advance(false);
             });
         } else {
-            say('Try again! Count all the eggs together!', 0.85, 1.0);
+            say('Try again! You can do it!', 0.85, 1.0);
             document.getElementById('gb-fb').innerHTML='<span class="pop" style="font-size:32px;color:#adf">🦕 Try again!</span>';
             setTimeout(()=>{
                 document.querySelectorAll('#gb-choices .choice-btn').forEach(b=>{
                     b.classList.remove('wrong');
-                    b.onclick=()=>pickAdd(+b.textContent, prob);
+                    b.onclick=()=>pickAdd(+b.textContent.replace(/,/g,''), prob);
                 });
                 document.getElementById('gb-fb').innerHTML='';
             },1200);
@@ -494,83 +530,71 @@ function pickAdd(choice, prob) {
     }
 }
 
-// ─── GAME C: MISSING NUMBER ───────────────────────────────────────────────────
+// ─── GAME C: SKIP COUNT ───────────────────────────────────────────────────────
 function gameC() {
     S.wrongCount=0;
     const sq=S.seqs[S.si % S.seqs.length]; S.si++;
     show('s-gc');
     document.getElementById('gc-fb').innerHTML='';
+    document.getElementById('gc-inst').textContent='Count by '+sq.by+'s — what is missing?';
 
-    // Build sequence display
     const sr=document.getElementById('gc-seq');
     sr.innerHTML='';
     sq.seq.forEach((v,i)=>{
-        if(i>0){
-            const arr=document.createElement('div');
-            arr.className='seq-arrow'; arr.textContent='→';
-            sr.appendChild(arr);
-        }
+        if(i>0){ const arr=document.createElement('div'); arr.className='seq-arrow'; arr.textContent='→'; sr.appendChild(arr); }
         const box=document.createElement('div');
         box.className='seq-box'+(v===null?' blank':'');
-        box.textContent=v===null?'?':v;
+        box.textContent=v===null?'?':v.toLocaleString();
         sr.appendChild(box);
     });
+    const lbl=document.createElement('div');
+    lbl.className='skip-label'; lbl.style.width='100%'; lbl.style.textAlign='center';
+    lbl.textContent='COUNTING BY '+sq.by+'S';
+    sr.after(lbl);
 
-    const wrongs=nearbyChoices(sq.ans, 1, 7, 3);
+    const wrongs=seqDistractors(sq.ans, sq.by, 3);
     const opts=shuffle([sq.ans,...wrongs]);
     const cd=document.getElementById('gc-choices');
     cd.innerHTML='';
     opts.forEach(o=>{
         const b=document.createElement('button');
         b.className='choice-btn';
-        b.textContent=o;
-        b.onclick=()=>pickSeq(o, sq);
+        b.textContent=o.toLocaleString();
+        b.onclick=()=>pickSeq(o,sq);
         cd.appendChild(b);
     });
 
-    // Build spoken version of sequence
     const spoken=sq.seq.map(v=>v===null?'blank':v).join('... ');
-    setTimeout(()=>say('What number is missing? '+spoken+'. What goes in the blank?', 0.80, 1.1), 400);
+    setTimeout(()=>say('Count by '+sq.by+'s! '+spoken+'. What is the missing number?', 0.80, 1.1), 400);
 }
 
 function pickSeq(choice, sq) {
     const ok=choice===sq.ans;
     if(ok){
         document.querySelectorAll('#gc-choices .choice-btn').forEach(b=>b.onclick=null);
-        document.querySelectorAll('#gc-choices .choice-btn').forEach(b=>{
-            if(+b.textContent===sq.ans) b.classList.add('correct');
-        });
-        // Fill in blank box
-        document.querySelectorAll('.seq-box.blank').forEach(b=>{
-            b.textContent=sq.ans; b.classList.remove('blank');
-        });
-        say(sq.ans+'! That\'s right! Amethyst collected!', 0.85, 1.1);
+        document.querySelectorAll('#gc-choices .choice-btn').forEach(b=>{ if(+b.textContent.replace(/,/g,'')===sq.ans) b.classList.add('correct'); });
+        document.querySelectorAll('.seq-box.blank').forEach(b=>{ b.textContent=sq.ans.toLocaleString(); b.classList.remove('blank'); });
+        say(sq.ans+'! Amethyst collected!', 0.85, 1.1);
         document.getElementById('gc-fb').innerHTML='<span class="pop" style="font-size:46px;color:#bf5af2">💜 +1</span>';
         S.amethyst++; hud(); advance(true);
     } else {
         S.wrongCount++;
-        document.querySelectorAll('#gc-choices .choice-btn').forEach(b=>{
-            if(+b.textContent===choice) b.classList.add('wrong');
-        });
+        document.querySelectorAll('#gc-choices .choice-btn').forEach(b=>{ if(+b.textContent.replace(/,/g,'')===choice) b.classList.add('wrong'); });
         if(S.wrongCount>=2){
             document.querySelectorAll('#gc-choices .choice-btn').forEach(b=>b.onclick=null);
-            document.querySelectorAll('#gc-choices .choice-btn').forEach(b=>{
-                if(+b.textContent===sq.ans) b.classList.add('correct');
-            });
-            document.querySelectorAll('.seq-box.blank').forEach(b=>{
-                b.textContent=sq.ans; b.classList.remove('blank');
-            });
+            document.querySelectorAll('#gc-choices .choice-btn').forEach(b=>{ if(+b.textContent.replace(/,/g,'')===sq.ans) b.classList.add('correct'); });
+            document.querySelectorAll('.seq-box.blank').forEach(b=>{ b.textContent=sq.ans.toLocaleString(); b.classList.remove('blank'); });
             showDino('The missing number is '+sq.ans+'!', 2000, ()=>{
                 document.getElementById('gc-fb').innerHTML='<span class="pop" style="font-size:36px;color:#adf">🦕 Now you know!</span>';
                 advance(false);
             });
         } else {
-            say('Try again! Look at the numbers!', 0.85, 1.0);
+            say('Try again! Count by '+sq.by+'s!', 0.85, 1.0);
             document.getElementById('gc-fb').innerHTML='<span class="pop" style="font-size:32px;color:#adf">🦕 Try again!</span>';
             setTimeout(()=>{
                 document.querySelectorAll('#gc-choices .choice-btn').forEach(b=>{
                     b.classList.remove('wrong');
-                    b.onclick=()=>pickSeq(+b.textContent, sq);
+                    b.onclick=()=>pickSeq(+b.textContent.replace(/,/g,''), sq);
                 });
                 document.getElementById('gc-fb').innerHTML='';
             },1200);
@@ -589,43 +613,31 @@ function reward() {
     const sr=document.getElementById('reward-stars');
     sr.innerHTML='';
     [0,1,2].forEach(i=>{
-        const el=document.createElement('span');
-        el.className='star-j';
-        el.textContent=i<stars?'⭐':'☆';
-        el.style.animationDelay=(i*0.18)+'s';
+        const el=document.createElement('span'); el.className='star-j';
+        el.textContent=i<stars?'⭐':'☆'; el.style.animationDelay=(i*0.18)+'s';
         sr.appendChild(el);
     });
-    drawJungle(S.rubies, S.topaz, S.amethyst);
-    const msg=stars===3?'Amazing! Three stars! You are a math champion!'
+    drawJungle(S.rubies,S.topaz,S.amethyst);
+    const msg=stars===3?'Amazing! Three stars! You are a math genius!'
              :stars===2?'Great job! Two stars! You are so smart!'
              :'Good work! Keep practicing those numbers!';
-    setTimeout(()=>say(msg, 0.85, 1.1), 300);
+    setTimeout(()=>say(msg,0.85,1.1),300);
 }
 
-function drawJungle(r, t, a) {
+function drawJungle(r,t,a) {
     const cv=document.getElementById('build-canvas');
     const cx=cv.getContext('2d');
     const W=cv.width, H=cv.height;
     cx.clearRect(0,0,W,H);
-
-    // Background
     cx.fillStyle='#061006'; cx.fillRect(0,0,W,H);
-
-    // Moon
     cx.fillStyle='#fffde7'; cx.shadowColor='#fffde7'; cx.shadowBlur=18;
-    cx.beginPath(); cx.arc(W-50,36,22,0,Math.PI*2); cx.fill();
-    cx.shadowBlur=0;
-
-    // Stars
+    cx.beginPath(); cx.arc(W-50,36,22,0,Math.PI*2); cx.fill(); cx.shadowBlur=0;
     for(let i=0;i<20;i++){
         cx.fillStyle='rgba(255,255,220,'+(Math.random()*0.6+0.2)+')';
         cx.beginPath(); cx.arc(Math.random()*W,Math.random()*(H*0.5),1,0,Math.PI*2); cx.fill();
     }
-
-    // Ground
     cx.fillStyle='#1a4a1a'; cx.fillRect(0,H-36,W,18);
     cx.fillStyle='#0d2b0d'; cx.fillRect(0,H-18,W,18);
-
     const bs=18;
     function blk(col,x,y,glow){
         cx.shadowColor=glow||col; cx.shadowBlur=glow?10:0;
@@ -634,27 +646,18 @@ function drawJungle(r, t, a) {
         cx.fillStyle='rgba(0,0,0,0.3)'; cx.fillRect(x,y+bs-3,bs,3); cx.fillRect(x+bs-3,y,3,bs);
         cx.shadowBlur=0;
     }
-
     const mx=W/2-bs, gy=H-36;
-
-    // Tree trunk (always)
     blk('#5d3a1a',mx,gy-bs); blk('#5d3a1a',mx+bs,gy-bs);
     blk('#5d3a1a',mx,gy-2*bs); blk('#5d3a1a',mx+bs,gy-2*bs);
-
-    // Ruby leaves (red-orange)
-    if(r>=1){ blk('#ff4f4f',mx-bs,gy-2*bs,'#ff4f4f'); blk('#ff4f4f',mx+2*bs,gy-2*bs,'#ff4f4f'); blk('#39d353',mx,gy-3*bs,'#39d353'); blk('#39d353',mx+bs,gy-3*bs,'#39d353'); }
-    if(r>=2){ blk('#39d353',mx-bs,gy-3*bs,'#39d353'); blk('#39d353',mx+2*bs,gy-3*bs,'#39d353'); blk('#ff4f4f',mx,gy-4*bs,'#ff4f4f'); }
-    if(r>=3){ blk('#ff4f4f',mx-bs,gy-4*bs,'#ff4f4f'); blk('#ff4f4f',mx+2*bs,gy-4*bs,'#ff4f4f'); blk('#39d353',mx+bs/2,gy-4.5*bs,'#39d353'); }
-
-    // Topaz fruit (orange)
-    if(t>=1){ blk('#ff9f0a',mx-2*bs,gy-bs,'#ff9f0a'); blk('#ff9f0a',mx+3*bs,gy-bs,'#ff9f0a'); }
-    if(t>=2){ blk('#ff9f0a',mx-2*bs,gy-2*bs,'#ff9f0a'); blk('#ff9f0a',mx+3*bs,gy-2*bs,'#ff9f0a'); }
-    if(t>=3){ blk('#ff9f0a',mx-3*bs,gy-bs,'#ff9f0a'); blk('#ff9f0a',mx+4*bs,gy-bs,'#ff9f0a'); }
-
-    // Amethyst flowers (purple)
-    if(a>=1){ blk('#bf5af2',mx-3*bs,gy-2*bs,'#bf5af2'); blk('#bf5af2',mx+4*bs,gy-2*bs,'#bf5af2'); }
-    if(a>=2){ blk('#bf5af2',mx-2*bs,gy-3*bs,'#bf5af2'); blk('#bf5af2',mx+3*bs,gy-3*bs,'#bf5af2'); }
-    if(a>=3){ blk('#bf5af2',mx-3*bs,gy-3*bs,'#bf5af2'); blk('#bf5af2',mx+4*bs,gy-3*bs,'#bf5af2'); }
+    if(r>=1){blk('#ff4f4f',mx-bs,gy-2*bs,'#ff4f4f'); blk('#ff4f4f',mx+2*bs,gy-2*bs,'#ff4f4f'); blk('#39d353',mx,gy-3*bs,'#39d353'); blk('#39d353',mx+bs,gy-3*bs,'#39d353');}
+    if(r>=2){blk('#39d353',mx-bs,gy-3*bs,'#39d353'); blk('#39d353',mx+2*bs,gy-3*bs,'#39d353'); blk('#ff4f4f',mx,gy-4*bs,'#ff4f4f');}
+    if(r>=3){blk('#ff4f4f',mx-bs,gy-4*bs,'#ff4f4f'); blk('#ff4f4f',mx+2*bs,gy-4*bs,'#ff4f4f'); blk('#39d353',mx+bs/2,gy-4.5*bs,'#39d353');}
+    if(t>=1){blk('#ff9f0a',mx-2*bs,gy-bs,'#ff9f0a'); blk('#ff9f0a',mx+3*bs,gy-bs,'#ff9f0a');}
+    if(t>=2){blk('#ff9f0a',mx-2*bs,gy-2*bs,'#ff9f0a'); blk('#ff9f0a',mx+3*bs,gy-2*bs,'#ff9f0a');}
+    if(t>=3){blk('#ff9f0a',mx-3*bs,gy-bs,'#ff9f0a'); blk('#ff9f0a',mx+4*bs,gy-bs,'#ff9f0a');}
+    if(a>=1){blk('#bf5af2',mx-3*bs,gy-2*bs,'#bf5af2'); blk('#bf5af2',mx+4*bs,gy-2*bs,'#bf5af2');}
+    if(a>=2){blk('#bf5af2',mx-2*bs,gy-3*bs,'#bf5af2'); blk('#bf5af2',mx+3*bs,gy-3*bs,'#bf5af2');}
+    if(a>=3){blk('#bf5af2',mx-3*bs,gy-3*bs,'#bf5af2'); blk('#bf5af2',mx+4*bs,gy-3*bs,'#bf5af2');}
 }
 
 // ─── SPEECH WARM-UP ───────────────────────────────────────────────────────────
